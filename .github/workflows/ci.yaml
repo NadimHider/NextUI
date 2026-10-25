@@ -7,6 +7,7 @@ on:
     branches:
       - main
   pull_request: {}
+  workflow_dispatch: {}
 
 permissions:
   attestations: write
@@ -170,7 +171,7 @@ jobs:
 
       - name: Attest Build Provenance
         uses: actions/attest-build-provenance@v4.2.2
-        if: github.ref == 'refs/heads/main'
+        if: github.repository == 'LoveRetro/NextUI' && github.ref == 'refs/heads/main'
         with:
           subject-path: |
             releases/${{ env.RELEASE_NAME }}-all.zip

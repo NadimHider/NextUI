@@ -253,6 +253,7 @@ int main(int argc, char *argv[])
 
     GFX_clearAll();
 	GFX_clearLayers(0);
+	SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
 	GFX_flip(screen);
 
     // GFX_init() is what gets the platform far enough along to answer this
@@ -270,6 +271,7 @@ int main(int argc, char *argv[])
 
             if (msg_dirty) {
                 GFX_clear(screen);
+                SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
                 GFX_blitMessage(font.large, "This device has no RGB lights.", screen,
                     &(SDL_Rect){0, 0, screen->w, screen->h});
                 GFX_blitButtonGroup((char*[]){ "B","BACK", NULL }, 1, screen, 1);
@@ -362,6 +364,7 @@ int main(int argc, char *argv[])
 
         if (dirty) {
             GFX_clear(screen);
+            SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
 
             int ow = GFX_blitHardwareGroup(screen, show_setting);
 

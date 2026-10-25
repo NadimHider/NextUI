@@ -490,6 +490,12 @@ int main(int argc, char *argv[])
             []() -> std::any { return CFG_getFontStyle(); },
             [](const std::any &value) { CFG_setFontStyle(std::any_cast<int>(value)); },
             []() { CFG_setFontStyle(CFG_DEFAULT_FONT_STYLE); }});
+        static const std::vector<std::any> font_size_values = {0, 1, 2, 3};
+        static const std::vector<std::string> font_size_labels = {"Small (Compact)", "Medium (Sleek)", "Large (Original)", "Extra Large"};
+        appearanceItems.push_back(new MenuItem{ListItemType::Generic, "Font size", "The size to render the UI and gamelist font", font_size_values, font_size_labels,
+            []() -> std::any { return CFG_getFontSize(); },
+            [](const std::any &value) { CFG_setFontSize(std::any_cast<int>(value)); },
+            []() { CFG_setFontSize(CFG_DEFAULT_FONT_SIZE); }});
         appearanceItems.push_back(buildPaletteMenuItem());
         for (auto *item : colorMenuItems)
             appearanceItems.push_back(item);

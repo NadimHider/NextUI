@@ -104,6 +104,7 @@ typedef struct
 	// Theme
 	char fontFile[256];
 	int fontStyle; // 0x00 = TTF_STYLE_NORMAL, 0x01 = TTF_STYLE_BOLD, etc.
+	int fontSize;  // 0 = Small, 1 = Medium, 2 = Large, 3 = Extra Large
 	uint32_t color1_255; // not screen mapped
 	uint32_t color2_255; // not screen mapped
 	uint32_t color3_255; // not screen mapped
@@ -201,6 +202,7 @@ typedef struct
 
 #define CFG_DEFAULT_FONT_FILE "font1.ttf"  // Next
 #define CFG_DEFAULT_FONT_STYLE 0x01 // TTF_STYLE_BOLD (MinUI default)
+#define CFG_DEFAULT_FONT_SIZE 1 // Medium (14pt, sleek)
 #define CFG_DEFAULT_COLOR1 0xffffffffU
 #define CFG_DEFAULT_COLOR2 0x9b2257ffU
 #define CFG_DEFAULT_COLOR3 0x1e2329ffU
@@ -291,6 +293,8 @@ void CFG_setFontFile(const char* filename);
 // The font style to use for the UI font.
 int CFG_getFontStyle(void);
 void CFG_setFontStyle(int style);
+int CFG_getFontSize(void);
+void CFG_setFontSize(int size);
 // The colors to use for the UI. These are packed 0xRRGGBBAA values.
 // 0 - Color1 (primary hint/asset colour)
 // 1 - Color2 (accent colour)

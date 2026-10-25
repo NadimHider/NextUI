@@ -374,11 +374,55 @@ int GFX_loadSystemFont(const char *fontPath)
 	TTF_CloseFont(font.tiny);
 	TTF_CloseFont(font.micro);
 
-	font.large = TTF_OpenFont(fontPath, SCALE1(FONT_LARGE));
-	font.medium = TTF_OpenFont(fontPath, SCALE1(FONT_MEDIUM));
-	font.small = TTF_OpenFont(fontPath, SCALE1(FONT_SMALL));
-	font.tiny = TTF_OpenFont(fontPath, SCALE1(FONT_TINY));
-	font.micro = TTF_OpenFont(fontPath, SCALE1(FONT_MICRO));
+	int size_large = FONT_LARGE;
+	int size_medium = FONT_MEDIUM;
+	int size_small = FONT_SMALL;
+	int size_tiny = FONT_TINY;
+	int size_micro = FONT_MICRO;
+
+	switch (CFG_getFontSize()) {
+		case 0: // Small (Compact)
+			size_large = 12;
+			size_medium = 11;
+			size_small = 10;
+			size_tiny = 8;
+			size_micro = 7;
+			break;
+		case 1: // Medium (Sleek)
+			size_large = 14;
+			size_medium = 12;
+			size_small = 11;
+			size_tiny = 9;
+			size_micro = 7;
+			break;
+		case 2: // Large (Original)
+			size_large = 16;
+			size_medium = 14;
+			size_small = 12;
+			size_tiny = 10;
+			size_micro = 7;
+			break;
+		case 3: // Extra Large
+			size_large = 18;
+			size_medium = 15;
+			size_small = 13;
+			size_tiny = 11;
+			size_micro = 8;
+			break;
+		default:
+			size_large = 14;
+			size_medium = 12;
+			size_small = 11;
+			size_tiny = 9;
+			size_micro = 7;
+			break;
+	}
+
+	font.large = TTF_OpenFont(fontPath, SCALE1(size_large));
+	font.medium = TTF_OpenFont(fontPath, SCALE1(size_medium));
+	font.small = TTF_OpenFont(fontPath, SCALE1(size_small));
+	font.tiny = TTF_OpenFont(fontPath, SCALE1(size_tiny));
+	font.micro = TTF_OpenFont(fontPath, SCALE1(size_micro));
 
 	TTF_SetFontStyle(font.large, CFG_getFontStyle());
 	TTF_SetFontStyle(font.medium, CFG_getFontStyle());

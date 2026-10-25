@@ -33,6 +33,7 @@ void CFG_defaults(NextUISettings *cfg)
     NextUISettings defaults = {
         .fontFile = CFG_DEFAULT_FONT_FILE,
         .fontStyle = CFG_DEFAULT_FONT_STYLE,
+        .fontSize = CFG_DEFAULT_FONT_SIZE,
         .color1_255 = CFG_DEFAULT_COLOR1,
         .color2_255 = CFG_DEFAULT_COLOR2,
         .color3_255 = CFG_DEFAULT_COLOR3,
@@ -513,6 +514,11 @@ void CFG_init(FontLoad_callback_t cb, ColorSet_callback_t ccb)
             if (sscanf(line, "fontStyle=%i", &temp_value) == 1)
             {
                 CFG_setFontStyle(temp_value);
+                continue;
+            }
+            if (sscanf(line, "fontSize=%i", &temp_value) == 1)
+            {
+                CFG_setFontSize(temp_value);
                 continue;
             }
             if (sscanf(line, "gameSwitcherCurtain=%i", &temp_value) == 1)
@@ -1309,6 +1315,18 @@ void CFG_setFontStyle(int style)
     CFG_setFontFile(CFG_getFontFile());
 }
 
+int CFG_getFontSize(void)
+{
+    return settings.fontSize;
+}
+
+void CFG_setFontSize(int size)
+{
+    settings.fontSize = clamp(size, 0, 3);
+    CFG_sync();
+    CFG_setFontFile(CFG_getFontFile());
+}
+
 int CFG_getGameSwitcherCurtain(void)
 {
     return settings.gameSwitcherCurtain;
@@ -1578,6 +1596,10 @@ void CFG_get(const char *key, char *value)
     {
         sprintf(value, "%i", CFG_getFontStyle());
     }
+    else if (strcmp(key, "fontSize") == 0)
+    {
+        sprintf(value, "%i", CFG_getFontSize());
+    }
     else if (strcmp(key, "gameSwitcherCurtain") == 0)
     {
         sprintf(value, "%i", CFG_getGameSwitcherCurtain());
@@ -1686,6 +1708,7 @@ void CFG_sync(void)
     fprintf(file, "raProgressNotificationDuration=%i\n", settings.raProgressNotificationDuration);
     fprintf(file, "raAchievementSortOrder=%i\n", settings.raAchievementSortOrder);
     fprintf(file, "fontStyle=%i\n", settings.fontStyle);
+    fprintf(file, "fontSize=%i\n", settings.fontSize);
     fprintf(file, "gameSwitcherCurtain=%i\n", settings.gameSwitcherCurtain);
     fprintf(file, "inputPromptStyle=%i\n", settings.inputPromptStyle);
 
@@ -1760,6 +1783,7 @@ void CFG_print(void)
     printf("\t\"raProgressNotificationDuration\": %i,\n", settings.raProgressNotificationDuration);
     printf("\t\"raAchievementSortOrder\": %i,\n", settings.raAchievementSortOrder);
     printf("\t\"fontStyle\": %i,\n", settings.fontStyle);
+    printf("\t\"fontSize\": %i,\n", settings.fontSize);
     printf("\t\"gameSwitcherCurtain\": %i,\n", settings.gameSwitcherCurtain);
     printf("\t\"inputPromptStyle\": %i,\n", settings.inputPromptStyle);
 
