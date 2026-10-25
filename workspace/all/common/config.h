@@ -200,7 +200,7 @@ typedef struct
 #define TRANSITION_SNAPPY 1
 #define TRANSITION_COMFY  2
 
-#define CFG_DEFAULT_FONT_FILE "font1.ttf"  // Next
+#define CFG_DEFAULT_FONT_FILE "DepartureMono-Regular.otf"  // Departure Mono (Default)
 #define CFG_DEFAULT_FONT_STYLE 0x01 // TTF_STYLE_BOLD (MinUI default)
 #define CFG_DEFAULT_FONT_SIZE 1 // Medium (14pt, sleek)
 #define CFG_DEFAULT_COLOR1 0xffffffffU

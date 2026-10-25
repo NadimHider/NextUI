@@ -98,6 +98,10 @@ struct FontEntry {
 
 static std::vector<FontEntry> enumerateFonts() {
     std::vector<FontEntry> fonts;
+    std::vector<FontEntry> custom_fonts;
+
+    // Featured fonts at top
+    fonts.push_back({"DepartureMono-Regular.otf", "Departure Mono"});
     fonts.push_back({"font1.ttf", "Next"});
     fonts.push_back({"font2.ttf", "OG"});
 
@@ -106,8 +110,10 @@ static std::vector<FontEntry> enumerateFonts() {
         struct dirent *ent;
         while ((ent = readdir(dir)) != NULL) {
             if (ent->d_name[0] == '.') continue;
-            // skip built-in/system fonts (font1/font2 already added above)
+            // skip built-in/featured fonts already added
             if (strcmp(ent->d_name, "font1.ttf") == 0 || strcmp(ent->d_name, "font2.ttf") == 0)
+                continue;
+            if (strcmp(ent->d_name, "DepartureMono-Regular.otf") == 0)
                 continue;
             if (strncmp(ent->d_name, "BPreplay", 8) == 0)
                 continue;
@@ -117,13 +123,23 @@ static std::vector<FontEntry> enumerateFonts() {
             if (strcasecmp(ext, ".ttf") != 0 && strcasecmp(ext, ".otf") != 0)
                 continue;
 
-            // build display name: strip extension, replace underscores
+            // build clean display name: strip extension, remove -Regular
             std::string label(ent->d_name, len - 4);
+            size_t reg_pos = label.find("-Regular");
+            if (reg_pos != std::string::npos) label.erase(reg_pos, 8);
             std::replace(label.begin(), label.end(), '_', ' ');
 
-            fonts.push_back({std::string(ent->d_name), label});
+            custom_fonts.push_back({std::string(ent->d_name), label});
         }
         closedir(dir);
+    }
+
+    std::sort(custom_fonts.begin(), custom_fonts.end(), [](const FontEntry &a, const FontEntry &b) {
+        return a.label < b.label;
+    });
+
+    for (const auto &cf : custom_fonts) {
+        fonts.push_back(cf);
     }
 
     return fonts;

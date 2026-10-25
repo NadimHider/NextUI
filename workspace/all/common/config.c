@@ -165,7 +165,7 @@ void CFG_init(FontLoad_callback_t cb, ColorSet_callback_t ccb)
             if (strncmp(line, "font=", 5) == 0)
             {
                 char *value = line + 5;
-                value[strcspn(value, "\n")] = 0;
+                value[strcspn(value, "\r\n")] = 0;
                 // backward compat: "0" -> font2.ttf, "1" -> font1.ttf
                 if (strcmp(value, "0") == 0)
                     CFG_setFontFile("font2.ttf");
