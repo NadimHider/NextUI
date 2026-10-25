@@ -46,3 +46,5 @@ workspace/.container_runtime
 AGENTS.md
 CLAUDE.md
 .worktrees/
+
+release_assets/
