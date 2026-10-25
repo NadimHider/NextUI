@@ -34,7 +34,18 @@ int containsString(char* haystack, char* needle) {
 	return strcasestr(haystack, needle) != NULL;
 }
 int hide(char* file_name) {
-	return file_name[0]=='.' || suffixMatch(".disabled", file_name) || exactMatch("map.txt", file_name);
+	if (!file_name || !file_name[0]) return 1;
+	if (file_name[0] == '.') return 1;
+	if (suffixMatch(".disabled", file_name)) return 1;
+	if (exactMatch("map.txt", file_name)) return 1;
+	if (suffixMatch(".xml", file_name)) return 1;
+	if (strstr(file_name, ".state") != NULL) return 1;
+	if (suffixMatch(".srm", file_name)) return 1;
+	if (suffixMatch(".png", file_name) || suffixMatch(".jpg", file_name) || suffixMatch(".jpeg", file_name)) return 1;
+	if (suffixMatch(".mp4", file_name) || suffixMatch(".avi", file_name) || suffixMatch(".mkv", file_name)) return 1;
+	if (suffixMatch(".txt", file_name)) return 1;
+	if (suffixMatch(".db", file_name)) return 1;
+	return 0;
 }
 char *splitString(char *str, const char *delim)
 {
