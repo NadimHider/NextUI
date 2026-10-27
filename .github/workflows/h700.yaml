@@ -27,10 +27,12 @@ jobs:
           mkdir -p h700-staging/bin
           mkdir -p h700-staging/Tools/Settings.pak
           mkdir -p h700-staging/Tools/LedControl.pak
+          mkdir -p h700-staging/Tools/CleanRomset.pak
 
           cp workspace/all/nextui/build/h700/nextui.elf h700-staging/bin/
           cp workspace/all/settings/build/h700/settings.elf h700-staging/Tools/Settings.pak/
           cp workspace/all/ledcontrol/build/h700/ledcontrol.elf h700-staging/Tools/LedControl.pak/
+          if [ -d skeleton/EXTRAS/Tools/h700/CleanRomset.pak ]; then cp -r skeleton/EXTRAS/Tools/h700/CleanRomset.pak/* h700-staging/Tools/CleanRomset.pak/; fi
 
           if [ -f workspace/all/minarch/build/h700/minarch.elf ]; then cp workspace/all/minarch/build/h700/minarch.elf h700-staging/bin/; fi
           if [ -f workspace/all/nextval/build/h700/nextval.elf ]; then cp workspace/all/nextval/build/h700/nextval.elf h700-staging/bin/; fi

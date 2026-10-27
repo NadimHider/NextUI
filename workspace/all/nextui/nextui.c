@@ -2509,6 +2509,22 @@ int main (int argc, char *argv[]) {
 				switcher_selected = 0;
 				dirty = 1;
 			}
+			else if (PAD_justPressed(BTN_START)) {
+				char settings_path[256];
+				snprintf(settings_path, sizeof(settings_path), "%s/Tools/%s/Settings.pak", SDCARD_PATH, PLATFORM);
+				if (exists(settings_path)) {
+					openPak(settings_path);
+				}
+				else {
+					currentScreen = SCREEN_QUICKMENU;
+					qm_col = 0;
+					qm_row = 0;
+					qm_shift = 0;
+					qm_slot = 0;
+					dirty = 1;
+					folderbgchanged = 1;
+				}
+			}
 			else if (total>0) {
 				if (PAD_justRepeated(BTN_UP)) {
 					if (selected==0 && !PAD_justPressed(BTN_UP)) {
@@ -2696,7 +2712,7 @@ int main (int argc, char *argv[]) {
 
 				GFX_blitButtonGroup((char*[]){ "B","BACK", "A","OPEN", NULL }, 1, screen, 1);
 
-				if(CFG_getShowQuickswitcherUI()) {
+				if(1) { // Always show QuickMenu items so Settings and tools are accessible
 					#define MENU_ITEM_SIZE 72 // item size, top line
 					#define MENU_MARGIN_Y 32 // space between main UI elements and quick menu
 					#define MENU_MARGIN_X 40 // space between main UI elements and quick menu
@@ -3051,13 +3067,17 @@ int main (int argc, char *argv[]) {
 				if (show_setting && !GetHDMI()) GFX_blitHardwareHints(screen, show_setting);
 				else if (can_resume) GFX_blitButtonGroup((char*[]){ "X","RESUME",  NULL }, 0, screen, 0);
 				else GFX_blitButtonGroup((char*[]){
-					BTN_SLEEP==BTN_POWER?"POWER":"MENU",
-					BTN_SLEEP==BTN_POWER||simple_mode?"SLEEP":"INFO",
+					"MENU","MENU",
+					BTN_SLEEP==BTN_POWER?"POWER":"SLEEP",
+					BTN_SLEEP==BTN_POWER||simple_mode?"SLEEP":"SLEEP",
 					NULL }, 0, screen, 0);
 
 				if (total==0) {
 					if (stack->count>1) {
 						GFX_blitButtonGroup((char*[]){ "B","BACK",  NULL }, 0, screen, 1);
+					}
+					else {
+						GFX_blitButtonGroup((char*[]){ "START","SETTINGS", NULL }, 0, screen, 1);
 					}
 				}
 				else {
@@ -3065,7 +3085,7 @@ int main (int argc, char *argv[]) {
 						GFX_blitButtonGroup((char*[]){ "B","BACK", "A","OPEN", NULL }, 1, screen, 1);
 					}
 					else {
-						GFX_blitButtonGroup((char*[]){ "A","OPEN", NULL }, 0, screen, 1);
+						GFX_blitButtonGroup((char*[]){ "START","SETTINGS", "A","OPEN", NULL }, 1, screen, 1);
 					}
 				}
 
