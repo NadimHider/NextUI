@@ -519,6 +519,11 @@ static Entry* entryFromPakName(char* pak_name)
 	if(exists(pak_path))
 		return Entry_newNamed(pak_path, ENTRY_PAK, pak_name);
 
+	// Fallback check in Roms/Tools
+	sprintf(pak_path, "%s/Roms/Tools/%s/%s.pak", SDCARD_PATH, PLATFORM, pak_name);
+	if(exists(pak_path))
+		return Entry_newNamed(pak_path, ENTRY_PAK, pak_name);
+
 	// Check in Emus
 	sprintf(pak_path, "%s/Emus/%s.pak", PAKS_PATH, pak_name);
 	if(exists(pak_path))
@@ -702,6 +707,8 @@ static int hasRoms(char* dir_name) {
 static int hasTools(void) {
 	char tools_path[256];
     snprintf(tools_path, sizeof(tools_path), "%s/Tools/%s", SDCARD_PATH, PLATFORM);
+	if (exists(tools_path)) return 1;
+    snprintf(tools_path, sizeof(tools_path), "%s/Roms/Tools/%s", SDCARD_PATH, PLATFORM);
 	return exists(tools_path);
 }
 
@@ -2495,14 +2502,27 @@ int main (int argc, char *argv[]) {
 		}
 		else {
 			if (PAD_tappedMenu(now)) {
-				currentScreen = SCREEN_QUICKMENU;
-				qm_col = 0;
-				qm_row = 0;
-				qm_shift = 0;
-				qm_slot = 0;
-				dirty = 1;
-				folderbgchanged = 1; // The background painting code is a clusterfuck, just force a repaint here
-				if (!HAS_POWER_BUTTON && !simple_mode) PWR_enableSleep();
+				char settings_path[256];
+				snprintf(settings_path, sizeof(settings_path), "%s/Tools/%s/Settings.pak", SDCARD_PATH, PLATFORM);
+				if (exists(settings_path)) {
+					openPak(settings_path);
+				}
+				else {
+					snprintf(settings_path, sizeof(settings_path), "%s/Roms/Tools/%s/Settings.pak", SDCARD_PATH, PLATFORM);
+					if (exists(settings_path)) {
+						openPak(settings_path);
+					}
+					else {
+						currentScreen = SCREEN_QUICKMENU;
+						qm_col = 0;
+						qm_row = 0;
+						qm_shift = 0;
+						qm_slot = 0;
+						dirty = 1;
+						folderbgchanged = 1;
+						if (!HAS_POWER_BUTTON && !simple_mode) PWR_enableSleep();
+					}
+				}
 			}
 			else if (PAD_tappedSelect(now)) {
 				currentScreen = SCREEN_GAMESWITCHER;

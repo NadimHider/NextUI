@@ -45,6 +45,7 @@ int hide(char* file_name) {
 	if (suffixMatch(".mp4", file_name) || suffixMatch(".avi", file_name) || suffixMatch(".mkv", file_name)) return 1;
 	if (suffixMatch(".txt", file_name)) return 1;
 	if (suffixMatch(".db", file_name)) return 1;
+	if (exactMatch("Tools", file_name) || exactMatch("Emus", file_name) || exactMatch("Bios", file_name) || exactMatch("Shaders", file_name) || exactMatch("Saves", file_name) || exactMatch("Cheats", file_name) || exactMatch("Overlays", file_name) || exactMatch("trimui", file_name) || exactMatch("h700", file_name)) return 1;
 	return 0;
 }
 char *splitString(char *str, const char *delim)

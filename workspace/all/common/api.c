@@ -3952,19 +3952,24 @@ int PAD_justRepeated(int btn) { return pad.just_repeated & btn; }
 
 int PAD_tappedBtn(int btn, uint32_t now)
 {
-#define MENU_DELAY 250 // also in PWR_update()
-	static uint32_t menu_start = 0;
-	static int ignore_menu = 0;
+#define MENU_DELAY 450 // increased from 250ms to 450ms for reliable recognition
+	static uint32_t btn_start[BTN_ID_COUNT] = {0};
+	static int ignore_btn[BTN_ID_COUNT] = {0};
+
+	int id = 0;
+	while (id < BTN_ID_COUNT && (1 << id) != btn) id++;
+	if (id >= BTN_ID_COUNT) id = 0;
+
 	if (PAD_justPressed(btn))
 	{
-		ignore_menu = 0;
-		menu_start = now;
+		ignore_btn[id] = 0;
+		btn_start[id] = now;
 	}
-	else if (PAD_isPressed(btn) && BTN_MOD_BRIGHTNESS == btn && (PAD_justPressed(BTN_MOD_PLUS) || PAD_justPressed(BTN_MOD_MINUS)))
+	else if (PAD_isPressed(btn) && (btn == BTN_MOD_BRIGHTNESS || btn == BTN_MOD_VOLUME || btn == BTN_MOD_COLORTEMP) && (PAD_justPressed(BTN_MOD_PLUS) || PAD_justPressed(BTN_MOD_MINUS)))
 	{
-		ignore_menu = 1;
+		ignore_btn[id] = 1;
 	}
-	return (!ignore_menu && PAD_justReleased(btn) && now - menu_start < MENU_DELAY);
+	return (!ignore_btn[id] && PAD_justReleased(btn) && now - btn_start[id] < MENU_DELAY);
 }
 
 int PAD_tappedMenu(uint32_t now)
