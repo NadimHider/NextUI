@@ -1,0 +1,9 @@
+version=1
+name=Aurora Pine
+color1=0x79C9A6FF
+color2=0x0E1713FF
+color3=0x1C3028FF
+color4=0xE4F2EBFF
+color5=0x06110CFF
+color6=0xA5C4B5FF
+color7=0x050B08FF

@@ -1,0 +1,9 @@
+version=1
+name=Obsidian Gold
+color1=0xD8B36AFF
+color2=0x14130FFF
+color3=0x2A261CFF
+color4=0xF2ECDFFF
+color5=0x120E06FF
+color6=0xC2B48FFF
+color7=0x080705FF

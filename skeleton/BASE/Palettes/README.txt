@@ -2,7 +2,8 @@ Nocturne color palettes
 ----------------------
 
 Built in: Nocturne (moonstone), Ember (warm gold), Iris (dusk violet),
-and Tidal (steel blue). All four are dark-only.
+Tidal (steel blue), Obsidian Gold, Midnight Sapphire, Aurora Pine,
+Crimson Noir, Graphite Copper, and Velvet Indigo. All are dark-only.
 
 Drop a version=1 .txt file in this folder to add a palette under
 Settings > Appearance > Color palette. Files are sorted by name.

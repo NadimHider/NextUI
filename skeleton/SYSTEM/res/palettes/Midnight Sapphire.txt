@@ -1,0 +1,9 @@
+version=1
+name=Midnight Sapphire
+color1=0x7FA8E8FF
+color2=0x0E1420FF
+color3=0x1C2A3EFF
+color4=0xE6EEFAFF
+color5=0x060B14FF
+color6=0xA8BCD8FF
+color7=0x05080FFF

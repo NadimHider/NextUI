@@ -1,0 +1,9 @@
+version=1
+name=Velvet Indigo
+color1=0xA98BEAFF
+color2=0x141020FF
+color3=0x271F3AFF
+color4=0xEDE7F8FF
+color5=0x0D0818FF
+color6=0xB8AAD2FF
+color7=0x07050DFF

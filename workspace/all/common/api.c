@@ -375,12 +375,13 @@ int GFX_loadSystemFont(const char *fontPath)
 	TTF_CloseFont(font.micro);
 
 	// Existing numeric settings are preserved; the default is now comfortable
-	// rather than synthetic-bold/compact. Micro text is never smaller than 8.
+	// rather than synthetic-bold/compact. Every step is two points smaller than
+	// the original scale, and micro text is never smaller than 8.
 	static const int sizes[4][5] = {
-		{14, 12, 11,  9, 7},
-		{16, 14, 12, 10, 8},
-		{18, 15, 13, 11, 8},
-		{20, 16, 14, 12, 9},
+		{12, 10,  9, 8, 8},
+		{14, 12, 10, 8, 8},
+		{16, 13, 11, 9, 8},
+		{18, 14, 12, 10, 8},
 	};
 	int size = CFG_getFontSize();
 	if (size < 0 || size > 3) size = CFG_DEFAULT_FONT_SIZE;
@@ -1948,34 +1949,53 @@ void GFX_blitPillColor(int asset, SDL_Surface *dst, SDL_Rect *dst_rect, uint32_t
 	int w = dst_rect->w;
 	int h = dst_rect->h;
 
-	if (h == 0)
-		h = asset_rects[asset].h;
+	SDL_Rect src_asset = asset_rects[asset];
+	if (h <= 0)
+		h = src_asset.h;
+	if (w <= 0)
+		return;
 
+	// The pill asset is a square with fully rounded ends. Scale the end caps
+	// from the asset's native height to the requested height instead of
+	// cropping them: the old code sampled a fixed h/2 cap, so an inset pill
+	// (height < asset height) lost its bottom corner and the right cap was
+	// taken from the middle of the asset. Keep both caps inside the requested
+	// rect even when the caller asks for a pill narrower than it is tall.
 	int r = h / 2;
-	if (w < h)
-		w = h;
-	w -= h;
+	if (r * 2 > w)
+		r = w / 2;
+	int center_w = w - r * 2;
 
-	GFX_blitAssetColor(asset, &(SDL_Rect){0, 0, r, h}, dst, &(SDL_Rect){x, y}, asset_color);
-	x += r;
-	if (w > 0)
+	int src_r = src_asset.h / 2;
+	if (src_r <= 0)
+		src_r = 1;
+
+	// Left cap.
+	GFX_blitSurfaceColorScaled(gfx.assets,
+		&(SDL_Rect){src_asset.x, src_asset.y, src_r, src_asset.h},
+		dst, &(SDL_Rect){x, y, r, h}, asset_color);
+
+	if (center_w > 0)
 	{
 		int rect_asset = GFX_pillRectAsset(asset);
 		if (rect_asset >= 0)
 		{
 			uint32_t center_color = (fill_color != RGB_WHITE) ? fill_color : asset_color;
 			SDL_Rect src_rect = asset_rects[rect_asset];
-			SDL_Rect center_dst = {x, y, w, h};
+			SDL_Rect center_dst = {x + r, y, center_w, h};
 			GFX_blitSurfaceColorScaled(gfx.assets, &src_rect, dst, &center_dst, center_color);
 		}
 		else
 		{
 			// Fallback for non-pill assets that still use this helper.
-			GFX_fillRectBlend(dst, &(SDL_Rect){x, y, w, h}, asset_color);
+			GFX_fillRectBlend(dst, &(SDL_Rect){x + r, y, center_w, h}, asset_color);
 		}
-		x += w;
 	}
-	GFX_blitAssetColor(asset, &(SDL_Rect){r, 0, r, h}, dst, &(SDL_Rect){x, y}, asset_color);
+
+	// Right cap.
+	GFX_blitSurfaceColorScaled(gfx.assets,
+		&(SDL_Rect){src_asset.x + src_asset.w - src_r, src_asset.y, src_r, src_asset.h},
+		dst, &(SDL_Rect){x + r + center_w, y, r, h}, asset_color);
 }
 void GFX_blitPill(int asset, SDL_Surface *dst, SDL_Rect *dst_rect)
 {

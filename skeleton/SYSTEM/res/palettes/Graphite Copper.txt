@@ -1,0 +1,9 @@
+version=1
+name=Graphite Copper
+color1=0xC98A6BFF
+color2=0x161514FF
+color3=0x2C2926FF
+color4=0xEFEAE6FF
+color5=0x120C09FF
+color6=0xBFB0A6FF
+color7=0x090807FF

@@ -2058,11 +2058,9 @@ void animcallback(finishedTask *task) {
 	SDL_LockMutex(animMutex);
 	pillRect = task->dst;
 	if(pillRect.w > 0 && pillRect.h > 0) {
-		pilltargetY = +screen->w; // move offscreen
-		if(task->done) {
-			pilltargetY = task->targetY;
-			pilltargetTextY = task->targetTextY;
-		}
+		pilltargetY = task->targetY;
+		// The text rides along with the pill on every frame, not just the last.
+		pilltargetTextY = task->targetTextY;
 		setNeedDraw(1);
 	}
 	SDL_UnlockMutex(animMutex);
@@ -2088,16 +2086,21 @@ int animWorker(void* unused) {
 
     AnimTask* task = node->task;
 		finishedTask* finaltask = (finishedTask*)malloc(sizeof(finishedTask));
-		int total_frames = task->frames;
+		int total_frames = task->frames > 0 ? task->frames : 1;
+		int text_offset_from_pill = task->targetTextY - task->targetY;
+		int startTextY = task->startY + text_offset_from_pill;
 		for (int frame = 0; frame <= total_frames; frame++) {
 			// Check for shutdown at start of each frame
 			if (SDL_AtomicGet(&workerThreadsShutdown)) break;
 
 			float t = (float)frame / total_frames;
 			if (t > 1.0f) t = 1.0f;
+			// Ease out so the pill settles instead of stopping abruptly.
+			t = t * (2.0f - t);
 
 			int current_x = task->startX + (int)((task->targetX - task->startX) * t);
 			int current_y = task->startY + (int)(( task->targetY -  task->startY) * t);
+			int current_text_y = startTextY + (int)((task->targetTextY - startTextY) * t);
 
 			SDL_Rect moveDst = { current_x, current_y, task->move_w, task->move_h };
 			finaltask->dst = moveDst;
@@ -2105,8 +2108,8 @@ int animWorker(void* unused) {
 			finaltask->move_w = task->move_w;
 			finaltask->move_h = task->move_h;
 			finaltask->targetY = task->targetY;
-			finaltask->targetTextY = task->targetTextY;
-			finaltask->move_y = SCALE1(PADDING + task->targetY) + (task->targetTextY - task->targetY);
+			finaltask->targetTextY = current_text_y;
+			finaltask->move_y = current_text_y;
 			finaltask->done = 0;
 			if(frame >= total_frames) finaltask->done=1;
 			task->callback(finaltask);
@@ -2117,6 +2120,10 @@ int animWorker(void* unused) {
 			frameReady = false;
 			SDL_UnlockMutex(frameMutex);
 
+			// Pace the worker at 60 fps; the render loop otherwise spins as
+			// fast as the GPU can present and the motion looks uneven.
+			if (frame < total_frames && !SDL_AtomicGet(&workerThreadsShutdown))
+				SDL_Delay(1000 / 60);
 		}
 		SDL_LockMutex(animqueueMutex);
 		if (!animTaskQueueHead) animTtaskQueueTail = NULL;
@@ -3188,8 +3195,9 @@ int main (int argc, char *argv[]) {
 						SDL_Surface* text = TTF_RenderUTF8_Blended(font.large, entry_name, text_color);
 						SDL_Surface* text_unique = TTF_RenderUTF8_Blended(font.large, display_name, row_is_selected ? uintToColour(THEME_COLOR5_255) : uintToColour(THEME_COLOR6_255));
 						SDL_UnlockMutex(fontMutex);
-						// TODO: Use actual font metrics to center, this only works in simple cases
-						const int text_offset_y = (SCALE1(PILL_SIZE) - text->h + 1) >> 1;
+						// Center inside the inset pill, not the full row height.
+						const int pill_text_h = SCALE1(PILL_SIZE - ROW_PILL_INSET * 2);
+						const int text_offset_y = SCALE1(ROW_PILL_INSET) + ((pill_text_h - text->h + 1) >> 1);
 						if (row_is_selected) {
 							is_scrolling = list_show_entry_names && CFG_getMenuAnimations() && GFX_textShouldScroll(font.large,display_name, max_width - SCALE1(BUTTON_PADDING*2), fontMutex);
 							GFX_resetScrollText();
@@ -3200,7 +3208,12 @@ int main (int argc, char *argv[]) {
 								globalpill=NULL;
 							}
 							globalpill = SDL_CreateRGBSurfaceWithFormat(SDL_SWSURFACE, max_width, SCALE1(PILL_SIZE - ROW_PILL_INSET * 2), FIXED_DEPTH, screen->format->format);
-							GFX_blitPillDark(ASSET_WHITE_PILL, globalpill, &(SDL_Rect){0,0, max_width, SCALE1(PILL_SIZE - ROW_PILL_INSET * 2)});
+							if (globalpill) {
+								// The rounded corners are outside the pill body; make
+								// sure they are transparent rather than uninitialized.
+								SDL_FillRect(globalpill, NULL, 0);
+								GFX_blitPillDark(ASSET_WHITE_PILL, globalpill, &(SDL_Rect){0,0, max_width, SCALE1(PILL_SIZE - ROW_PILL_INSET * 2)});
+							}
 							globallpillW =  max_width;
 							SDL_UnlockMutex(animMutex);
 							updatePillTextSurface(entry_name, max_width, uintToColour(THEME_COLOR5_255));
@@ -3213,7 +3226,7 @@ int main (int argc, char *argv[]) {
 							pilltargetTextY = task->targetTextY;
 							task->move_w = max_width;
 							task->move_h = SCALE1(PILL_SIZE - ROW_PILL_INSET * 2);
-							task->frames = should_animate && CFG_getMenuAnimations() ? 3:1;
+							task->frames = should_animate && CFG_getMenuAnimations() ? 8:1;
 							task->entry_name = strdup(notext ? " " : entry_name);
 							animPill(task);
 						}
@@ -3429,7 +3442,8 @@ int main (int argc, char *argv[]) {
 
 					int text_width = GFX_getTextWidth(font.large, entry_text, cached_display_name, available_width, SCALE1(BUTTON_PADDING * 2));
 					int max_width = MIN(available_width, text_width);
-					int text_offset_y = (SCALE1(PILL_SIZE) - TTF_FontHeight(font.large) + 1) >> 1;
+					int pill_text_h = SCALE1(PILL_SIZE - ROW_PILL_INSET * 2);
+					int text_offset_y = SCALE1(ROW_PILL_INSET) + ((pill_text_h - TTF_FontHeight(font.large) + 1) >> 1);
 
 					GFX_clearLayers(LAYER_SCROLLTEXT);
 					if (list_show_entry_names) {

@@ -1194,6 +1194,21 @@ void PLAT_drawOnLayer(SDL_Surface *inputSurface, int x, int y, int w, int h, flo
 }
 
 
+#define ANIM_FRAME_MS (1000 / 60)
+
+static float anim_elapsed_t(Uint32 start_time, int duration_ms) {
+	if (duration_ms <= 0) return 1.0f;
+	Uint32 elapsed = SDL_GetTicks() - start_time;
+	float t = (float)elapsed / (float)duration_ms;
+	return t > 1.0f ? 1.0f : t;
+}
+
+static void anim_wait_frame(Uint32 frame_start) {
+	Uint32 elapsed = SDL_GetTicks() - frame_start;
+	if (elapsed < ANIM_FRAME_MS)
+		SDL_Delay(ANIM_FRAME_MS - elapsed);
+}
+
 void PLAT_animateSurface(
 	SDL_Surface *inputSurface,
 	int x, int y,
@@ -1219,13 +1234,12 @@ void PLAT_animateSurface(
 	SDL_UpdateTexture(tempTexture, NULL, inputSurface->pixels, inputSurface->pitch);
 	SDL_SetTextureBlendMode(tempTexture, SDL_BLENDMODE_BLEND);  // Enable blending for opacity
 
-	const int fps = 60;
-	const int frame_delay = 1000 / fps;
-	const int total_frames = duration_ms > 0 ? duration_ms / frame_delay : 0;
-
-	for (int frame = 0; frame <= total_frames; ++frame) {
-
-		float t = total_frames > 0 ? (float)frame / total_frames : 1.0f;
+	Uint32 start_time = SDL_GetTicks();
+	for (;;) {
+		Uint32 frame_start = SDL_GetTicks();
+		// Drive motion from wall-clock time. Frame-index timing stretches and
+		// compresses the animation whenever a present takes longer than usual.
+		float t = anim_elapsed_t(start_time, duration_ms);
 
 		int current_x = x + (int)((target_x - x) * t);
 		int current_y = y + (int)((target_y - y) * t);
@@ -1251,6 +1265,9 @@ void PLAT_animateSurface(
 
 		SDL_SetRenderTarget(vid.renderer, NULL);
 		PLAT_GPU_Flip();
+
+		if (t >= 1.0f) break;
+		anim_wait_frame(frame_start);
 	}
 
 	SDL_DestroyTexture(tempTexture);
@@ -1430,19 +1447,16 @@ void PLAT_animateSurfaceOpacity(
 	SDL_UpdateTexture(tempTexture, NULL, inputSurface->pixels, inputSurface->pitch);
 	SDL_SetTextureBlendMode(tempTexture, SDL_BLENDMODE_BLEND);
 
-	const int fps = 60;
-	const int frame_delay = 1000 / fps;
-	const int total_frames = duration_ms > 0 ? duration_ms / frame_delay : 0;
-
 	SDL_Texture* target_layer = (layer == 0) ? vid.target_layer2 : vid.target_layer4;
 	if (!target_layer) {
 		SDL_DestroyTexture(tempTexture);
 		return;
 	}
 
-	for (int frame = 0; frame <= total_frames; ++frame) {
-
-		float t = total_frames > 0 ? (float)frame / total_frames : 1.0f;
+	Uint32 start_time = SDL_GetTicks();
+	for (;;) {
+		Uint32 frame_start = SDL_GetTicks();
+		float t = anim_elapsed_t(start_time, duration_ms);
 		int current_opacity = start_opacity + (int)((target_opacity - start_opacity) * t);
 		if (current_opacity < 0) current_opacity = 0;
 		if (current_opacity > 255) current_opacity = 255;
@@ -1460,6 +1474,8 @@ void PLAT_animateSurfaceOpacity(
 		vid.blit = 0;
 		PLAT_flip(vid.screen,0);
 
+		if (t >= 1.0f) break;
+		anim_wait_frame(frame_start);
 	}
 
 	SDL_DestroyTexture(tempTexture);
@@ -1548,15 +1564,11 @@ void PLAT_animateAndFadeSurface(
 		SDL_SetTextureBlendMode(fadeTexture, SDL_BLENDMODE_BLEND);
 	}
 
-	const int fps = 60;
-	const int frame_delay = 1000 / fps;
-	const int total_frames = duration_ms > 0 ? duration_ms / frame_delay : 0;
-
 	Uint32 start_time = SDL_GetTicks();
 
-	for (int frame = 0; frame <= total_frames; ++frame) {
-
-		float t = total_frames > 0 ? (float)frame / total_frames : 1.0f;
+	for (;;) {
+		Uint32 frame_start = SDL_GetTicks();
+		float t = anim_elapsed_t(start_time, duration_ms);
 		float t_input = anim_ease(t, input_easing, (float)intensity);
 		float t_fade  = anim_ease(t, fade_easing, (float)intensity);
 
@@ -1606,6 +1618,8 @@ void PLAT_animateAndFadeSurface(
 		SDL_SetRenderTarget(vid.renderer, NULL);
 		PLAT_GPU_Flip();
 
+		if (t >= 1.0f) break;
+		anim_wait_frame(frame_start);
 	}
 
 	SDL_DestroyTexture(moveTexture);

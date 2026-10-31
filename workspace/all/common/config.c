@@ -991,12 +991,14 @@ void CFG_setWifi(bool on)
 
 int CFG_getDefaultView(void)
 {
+    if (settings.defaultView < SCREEN_GAMELIST || settings.defaultView > SCREEN_QUICKMENU)
+        return CFG_DEFAULT_VIEW;
     return settings.defaultView;
 }
 
 void CFG_setDefaultView(int view)
 {
-    settings.defaultView = view;
+    settings.defaultView = clamp(view, SCREEN_GAMELIST, SCREEN_QUICKMENU);
     CFG_sync();
 }
 

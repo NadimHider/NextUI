@@ -1,0 +1,9 @@
+version=1
+name=Crimson Noir
+color1=0xD97C8CFF
+color2=0x1A1013FF
+color3=0x332027FF
+color4=0xF4E8EBFF
+color5=0x15080CFF
+color6=0xC9AAB2FF
+color7=0x0B0608FF
