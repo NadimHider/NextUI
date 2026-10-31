@@ -2092,6 +2092,7 @@ int animWorker(void* unused) {
 		for (int frame = 0; frame <= total_frames; frame++) {
 			// Check for shutdown at start of each frame
 			if (SDL_AtomicGet(&workerThreadsShutdown)) break;
+			Uint32 frame_start = SDL_GetTicks();
 
 			float t = (float)frame / total_frames;
 			if (t > 1.0f) t = 1.0f;
@@ -2120,10 +2121,15 @@ int animWorker(void* unused) {
 			frameReady = false;
 			SDL_UnlockMutex(frameMutex);
 
-			// Pace the worker at 60 fps; the render loop otherwise spins as
-			// fast as the GPU can present and the motion looks uneven.
-			if (frame < total_frames && !SDL_AtomicGet(&workerThreadsShutdown))
-				SDL_Delay(1000 / 60);
+			// Pace the worker at 60 fps, counting the time the main loop
+			// already spent presenting this frame. Sleeping a full 16 ms
+			// after every present would halve the effective rate.
+			if (frame < total_frames && !SDL_AtomicGet(&workerThreadsShutdown)) {
+				Uint32 elapsed = SDL_GetTicks() - frame_start;
+				const Uint32 frame_ms = 1000 / 60;
+				if (elapsed < frame_ms)
+					SDL_Delay(frame_ms - elapsed);
+			}
 		}
 		SDL_LockMutex(animqueueMutex);
 		if (!animTaskQueueHead) animTtaskQueueTail = NULL;
