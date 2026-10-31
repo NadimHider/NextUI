@@ -59,9 +59,9 @@ done
 # install/update
 if [ -f "$UPDATE_PATH" ]; then
 	if [ -d "$SYSTEM_PATH/$PLATFORM" ]; then
-		echo "TEXT:Updating NextUI" > /tmp/show2.fifo 2>/dev/null || true
+		echo "TEXT:Updating Nocturne" > /tmp/show2.fifo 2>/dev/null || true
 	else
-		echo "TEXT:Installing NextUI" > /tmp/show2.fifo 2>/dev/null || true
+		echo "TEXT:Installing Nocturne" > /tmp/show2.fifo 2>/dev/null || true
 	fi
 
 	# clean replacement for core paths
