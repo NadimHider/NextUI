@@ -1221,11 +1221,11 @@ void PLAT_animateSurface(
 
 	const int fps = 60;
 	const int frame_delay = 1000 / fps;
-	const int total_frames = duration_ms / frame_delay;
+	const int total_frames = duration_ms > 0 ? duration_ms / frame_delay : 0;
 
 	for (int frame = 0; frame <= total_frames; ++frame) {
 
-		float t = (float)frame / total_frames;
+		float t = total_frames > 0 ? (float)frame / total_frames : 1.0f;
 
 		int current_x = x + (int)((target_x - x) * t);
 		int current_y = y + (int)((target_y - y) * t);
@@ -1432,7 +1432,7 @@ void PLAT_animateSurfaceOpacity(
 
 	const int fps = 60;
 	const int frame_delay = 1000 / fps;
-	const int total_frames = duration_ms / frame_delay;
+	const int total_frames = duration_ms > 0 ? duration_ms / frame_delay : 0;
 
 	SDL_Texture* target_layer = (layer == 0) ? vid.target_layer2 : vid.target_layer4;
 	if (!target_layer) {
@@ -1442,7 +1442,7 @@ void PLAT_animateSurfaceOpacity(
 
 	for (int frame = 0; frame <= total_frames; ++frame) {
 
-		float t = (float)frame / total_frames;
+		float t = total_frames > 0 ? (float)frame / total_frames : 1.0f;
 		int current_opacity = start_opacity + (int)((target_opacity - start_opacity) * t);
 		if (current_opacity < 0) current_opacity = 0;
 		if (current_opacity > 255) current_opacity = 255;
@@ -1550,13 +1550,13 @@ void PLAT_animateAndFadeSurface(
 
 	const int fps = 60;
 	const int frame_delay = 1000 / fps;
-	const int total_frames = duration_ms / frame_delay;
+	const int total_frames = duration_ms > 0 ? duration_ms / frame_delay : 0;
 
 	Uint32 start_time = SDL_GetTicks();
 
 	for (int frame = 0; frame <= total_frames; ++frame) {
 
-		float t = (float)frame / total_frames;
+		float t = total_frames > 0 ? (float)frame / total_frames : 1.0f;
 		float t_input = anim_ease(t, input_easing, (float)intensity);
 		float t_fade  = anim_ease(t, fade_easing, (float)intensity);
 

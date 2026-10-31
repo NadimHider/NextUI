@@ -43,13 +43,14 @@ enum {
 void MSG_init(void) {
 	digits = SDL_CreateRGBSurface(SDL_SWSURFACE,SCALE2(DIGIT_WIDTH*DIGIT_COUNT,DIGIT_HEIGHT),FIXED_DEPTH, 0,0,0,0);
 	SDL_FillRect(digits, NULL, RGB_BLACK);
+	SDL_SetColorKey(digits, SDL_TRUE, RGB_BLACK);
 	
 	SDL_Surface* digit;
 	char* chars[] = { "0","1","2","3","4","5","6","7","8","9","/",".","%","x","(",")", NULL };
 	char* c;
 	int i = 0;
 	while ((c = chars[i])) {
-		digit = TTF_RenderUTF8_Blended(font.tiny, c, COLOR_WHITE);
+		digit = TTF_RenderUTF8_Blended(font.tiny, c, uintToColour(THEME_COLOR4_255));
 		SDL_BlitSurface(digit, NULL, digits, &(SDL_Rect){ (i * SCALE1(DIGIT_WIDTH)) + (SCALE1(DIGIT_WIDTH) - digit->w)/2, (SCALE1(DIGIT_HEIGHT) - digit->h)/2});
 		SDL_FreeSurface(digit);
 		i += 1;
@@ -390,11 +391,11 @@ static int OptionAchievements_showDetail(MenuList* list, int i) {
 			
 			// Title centered - wrap to max 2 lines with ellipsis if needed
 			int max_text_width = screen->w - SCALE1(PADDING * 2);
-			content_y = GFX_blitWrappedText(font.medium, ach->title, max_text_width, 2, COLOR_WHITE, screen, content_y);
+			content_y = GFX_blitWrappedText(font.medium, ach->title, max_text_width, 2, uintToColour(THEME_COLOR4_255), screen, content_y);
 			content_y += SCALE1(2);  // Spacing after title
 			
 			// Description - unlimited lines
-			content_y = GFX_blitWrappedText(font.small, ach->description, max_text_width, 0, COLOR_WHITE, screen, content_y);
+			content_y = GFX_blitWrappedText(font.small, ach->description, max_text_width, 0, uintToColour(THEME_COLOR4_255), screen, content_y);
 			content_y += SCALE1(4);  // Spacing after description
 			
 			// Points (singular/plural) - use tiny font like other metadata
@@ -404,7 +405,7 @@ static int OptionAchievements_showDetail(MenuList* list, int i) {
 			} else {
 				snprintf(points_str, sizeof(points_str), "%u points", ach->points);
 			}
-			SDL_Surface* points_text = TTF_RenderUTF8_Blended(font.tiny, points_str, COLOR_LIGHT_TEXT);
+			SDL_Surface* points_text = TTF_RenderUTF8_Blended(font.tiny, points_str, uintToColour(THEME_COLOR6_255));
 			SDL_BlitSurface(points_text, NULL, screen, &(SDL_Rect){
 				center_x - points_text->w / 2, content_y
 			});
@@ -416,7 +417,7 @@ static int OptionAchievements_showDetail(MenuList* list, int i) {
 				struct tm* tm_info = localtime(&ach->unlock_time);
 				char time_buf[64];
 				strftime(time_buf, sizeof(time_buf), "Unlocked %B %d %Y, %I:%M%p", tm_info);
-				SDL_Surface* time_text = TTF_RenderUTF8_Blended(font.tiny, time_buf, COLOR_LIGHT_TEXT);
+				SDL_Surface* time_text = TTF_RenderUTF8_Blended(font.tiny, time_buf, uintToColour(THEME_COLOR6_255));
 				SDL_BlitSurface(time_text, NULL, screen, &(SDL_Rect){
 					center_x - time_text->w / 2, content_y
 				});
@@ -425,7 +426,7 @@ static int OptionAchievements_showDetail(MenuList* list, int i) {
 			} else if (ach->measured_progress[0]) {
 				char progress_buf[64];
 				snprintf(progress_buf, sizeof(progress_buf), "Progress: %s", ach->measured_progress);
-				SDL_Surface* progress_text = TTF_RenderUTF8_Blended(font.tiny, progress_buf, COLOR_LIGHT_TEXT);
+				SDL_Surface* progress_text = TTF_RenderUTF8_Blended(font.tiny, progress_buf, uintToColour(THEME_COLOR6_255));
 				SDL_BlitSurface(progress_text, NULL, screen, &(SDL_Rect){
 					center_x - progress_text->w / 2, content_y
 				});
@@ -435,14 +436,14 @@ static int OptionAchievements_showDetail(MenuList* list, int i) {
 			
 			// Offline pending indicator
 			if (is_offline_pending) {
-				SDL_Surface* offline_text = TTF_RenderUTF8_Blended(font.tiny, "Unlocked offline - pending sync", COLOR_LIGHT_TEXT);
+				SDL_Surface* offline_text = TTF_RenderUTF8_Blended(font.tiny, "Unlocked offline - pending sync", uintToColour(THEME_COLOR6_255));
 				int wifi_size = SCALE1(12);
 				int total_w = wifi_size + SCALE1(4) + offline_text->w;
 				int icon_x = center_x - total_w / 2;
 				int text_x = icon_x + wifi_size + SCALE1(4);
 				int wifi_y = content_y + (offline_text->h - wifi_size) / 2;
 				GFX_blitAssetColor(ASSET_WIFI_OFF, NULL, screen,
-				                   &(SDL_Rect){icon_x, wifi_y}, 0xCCCCCC);
+				                   &(SDL_Rect){icon_x, wifi_y}, THEME_COLOR6);
 				SDL_BlitSurface(offline_text, NULL, screen, &(SDL_Rect){
 					text_x, content_y
 				});
@@ -454,7 +455,7 @@ static int OptionAchievements_showDetail(MenuList* list, int i) {
 			if (ach->rarity > 0) {
 				char rarity_buf[32];
 				snprintf(rarity_buf, sizeof(rarity_buf), "%.2f%% unlock rate", ach->rarity);
-				SDL_Surface* rarity_text = TTF_RenderUTF8_Blended(font.tiny, rarity_buf, COLOR_LIGHT_TEXT);
+				SDL_Surface* rarity_text = TTF_RenderUTF8_Blended(font.tiny, rarity_buf, uintToColour(THEME_COLOR6_255));
 				SDL_BlitSurface(rarity_text, NULL, screen, &(SDL_Rect){
 					center_x - rarity_text->w / 2, content_y
 				});
@@ -478,7 +479,7 @@ static int OptionAchievements_showDetail(MenuList* list, int i) {
 					break;
 			}
 			if (type_str) {
-				SDL_Surface* type_text = TTF_RenderUTF8_Blended(font.tiny, type_str, COLOR_LIGHT_TEXT);
+				SDL_Surface* type_text = TTF_RenderUTF8_Blended(font.tiny, type_str, uintToColour(THEME_COLOR6_255));
 				SDL_BlitSurface(type_text, NULL, screen, &(SDL_Rect){
 					center_x - type_text->w / 2, content_y
 				});
@@ -488,7 +489,7 @@ static int OptionAchievements_showDetail(MenuList* list, int i) {
 			
 			// Muted status below other info with gap before title
 			if (is_muted) {
-				SDL_Surface* mute_text = TTF_RenderUTF8_Blended(font.tiny, "Muted - progress notifications silenced", COLOR_LIGHT_TEXT);
+				SDL_Surface* mute_text = TTF_RenderUTF8_Blended(font.tiny, "Muted - progress notifications silenced", uintToColour(THEME_COLOR6_255));
 				int mute_icon_w = SCALE1(10);
 				int mute_icon_h = SCALE1(12);
 				int total_w = mute_icon_w + SCALE1(4) + mute_text->w;
@@ -497,7 +498,7 @@ static int OptionAchievements_showDetail(MenuList* list, int i) {
 				int icon_y = content_y + SCALE1(4) + (mute_text->h - mute_icon_h) / 2;
 				SDL_Rect mute_src = {0, SCALE1(4), SCALE1(10), SCALE1(12)};
 				GFX_blitAssetColor(ASSET_VOLUME_MUTE, &mute_src, screen,
-				                   &(SDL_Rect){icon_x, icon_y}, 0xCCCCCC);
+				                   &(SDL_Rect){icon_x, icon_y}, THEME_COLOR6);
 				SDL_BlitSurface(mute_text, NULL, screen, &(SDL_Rect){
 					text_x, content_y + SCALE1(4)
 				});
@@ -748,7 +749,7 @@ static int OptionAchievements_openMenu(MenuList* list, int i) {
 			// Status text at top, aligned with hardware pill (not part of centered content)
 			char status_text[64];
 			snprintf(status_text, sizeof(status_text), "%u/%u unlocked", unlocked, total);
-			SDL_Surface* status_surface = TTF_RenderUTF8_Blended(font.tiny, status_text, COLOR_WHITE);
+			SDL_Surface* status_surface = TTF_RenderUTF8_Blended(font.tiny, status_text, uintToColour(THEME_COLOR4_255));
 			SDL_BlitSurface(status_surface, NULL, screen, &(SDL_Rect){
 				(screen->w - status_surface->w) / 2,
 				SCALE1(PADDING) + (SCALE1(PILL_SIZE) - status_surface->h) / 2  // Vertically centered with pill
@@ -774,7 +775,7 @@ static int OptionAchievements_openMenu(MenuList* list, int i) {
 				bool is_offline_pending = RA_isAchievementOfflinePending(ach->id);
 				bool is_challenge = ach->bucket == RC_CLIENT_ACHIEVEMENT_BUCKET_ACTIVE_CHALLENGE;
 				bool is_selected = (row == selected_row);
-				SDL_Color text_color = COLOR_WHITE;
+				SDL_Color text_color = uintToColour(THEME_COLOR4_255);
 
 				if (is_selected) {
 					// Gray pill background for full row width (like MENU_FIXED selected)
@@ -784,7 +785,7 @@ static int OptionAchievements_openMenu(MenuList* list, int i) {
 				}
 
 				// Draw ">" on the right side (always white)
-				SDL_Surface* arrow = TTF_RenderUTF8_Blended(font.small, ">", COLOR_WHITE);
+				SDL_Surface* arrow = TTF_RenderUTF8_Blended(font.small, ">", uintToColour(THEME_COLOR4_255));
 				SDL_BlitSurface(arrow, NULL, screen, &(SDL_Rect){
 					ox + mw - arrow->w - opt_pad,
 					oy + SCALE1((row * BUTTON_SIZE) + 3)
@@ -889,7 +890,7 @@ static int OptionAchievements_openMenu(MenuList* list, int i) {
 						int mute_y = oy + SCALE1(row * BUTTON_SIZE) + (row_height - mute_icon_h) / 2;
 						SDL_Rect mute_src = {0, SCALE1(4), SCALE1(10), SCALE1(12)};
 						GFX_blitAssetColor(ASSET_VOLUME_MUTE, &mute_src, screen,
-						                   &(SDL_Rect){text_x, mute_y}, RGB_WHITE);
+						                   &(SDL_Rect){text_x, mute_y}, THEME_COLOR4);
 						text_x += SCALE1(10) + SCALE1(4);
 					}
 
@@ -898,7 +899,7 @@ static int OptionAchievements_openMenu(MenuList* list, int i) {
 						int wifi_size = SCALE1(12);
 						int wifi_y = oy + SCALE1(row * BUTTON_SIZE) + (row_height - wifi_size) / 2;
 						GFX_blitAssetColor(ASSET_WIFI_OFF, NULL, screen,
-						                   &(SDL_Rect){text_x, wifi_y}, RGB_WHITE);
+						                   &(SDL_Rect){text_x, wifi_y}, THEME_COLOR4);
 						text_x += wifi_size + SCALE1(4);
 					}
 
@@ -907,12 +908,12 @@ static int OptionAchievements_openMenu(MenuList* list, int i) {
 						int trophy_h = SCALE1(11);
 						int trophy_y = oy + SCALE1(row * BUTTON_SIZE) + (row_height - trophy_h) / 2;
 						GFX_blitAssetColor(ASSET_TROPHY, NULL, screen,
-						                   &(SDL_Rect){text_x, trophy_y}, RGB_WHITE);
+						                   &(SDL_Rect){text_x, trophy_y}, THEME_COLOR4);
 						text_x += SCALE1(10) + SCALE1(4);
 					}
 
 					// Title text (white for unselected)
-					SDL_Surface* title_text = TTF_RenderUTF8_Blended(font.small, ach->title, COLOR_WHITE);
+					SDL_Surface* title_text = TTF_RenderUTF8_Blended(font.small, ach->title, uintToColour(THEME_COLOR4_255));
 					SDL_BlitSurface(title_text, NULL, screen, &(SDL_Rect){
 						text_x,
 						oy + SCALE1((row * BUTTON_SIZE) + 1)
@@ -1237,7 +1238,7 @@ int Menu_options(MenuList* list) {
 			int selected_row = selected - start;
 			for (int i=start,j=0; i<end; i++,j++) {
 				MenuItem* item = &items[i];
-				SDL_Color text_color = COLOR_WHITE;
+				SDL_Color text_color = uintToColour(THEME_COLOR4_255);
 				// int ox = (screen->w - w) / 2; // if we're centering these (but I don't think we should after seeing it)
 				if (j==selected_row) {
 					// move out of conditional if centering
@@ -1275,7 +1276,7 @@ int Menu_options(MenuList* list) {
 			int selected_row = selected - start;
 			for (int i=start,j=0; i<end; i++,j++) {
 				MenuItem* item = &items[i];
-				SDL_Color text_color = COLOR_WHITE;
+				SDL_Color text_color = uintToColour(THEME_COLOR4_255);
 
 				if (j==selected_row) {
 					// gray pill
@@ -1289,7 +1290,7 @@ int Menu_options(MenuList* list) {
 				
 				if (item->values == NULL) {
 					// This is a navigation item, used to displayed a specific category
-					text = TTF_RenderUTF8_Blended(font.small, ">", COLOR_WHITE); // always white
+					text = TTF_RenderUTF8_Blended(font.small, ">", uintToColour(THEME_COLOR4_255)); // always white
 					SDL_BlitSurface(text, NULL, screen, &(SDL_Rect){
 						ox + mw - text->w - SCALE1(OPTION_PADDING),
 						oy+SCALE1((j*BUTTON_SIZE)+3)
@@ -1302,7 +1303,7 @@ int Menu_options(MenuList* list) {
 						while ( item->values && item->values[count]) count++;
 						if (item->value >= 0 && item->value < count) {
 							const char *str = item->values[item->value];
-							text = TTF_RenderUTF8_Blended(font.tiny, str ? str : "none", str ? COLOR_WHITE : COLOR_GRAY); // always white
+							text = TTF_RenderUTF8_Blended(font.tiny, str ? str : "none", str ? uintToColour(THEME_COLOR4_255) : uintToColour(THEME_COLOR6_255)); // always white
 							if (text) {
 								SDL_BlitSurface(text, NULL, screen, &(SDL_Rect){
 									ox + mw - text->w - SCALE1(OPTION_PADDING),
@@ -1375,7 +1376,7 @@ int Menu_options(MenuList* list) {
 			int selected_row = selected - start;
 			for (int i=start,j=0; i<end; i++,j++) {
 				MenuItem* item = &items[i];
-				SDL_Color text_color = COLOR_WHITE;
+				SDL_Color text_color = uintToColour(THEME_COLOR4_255);
 				
 
 				if (j==selected_row) {
@@ -1415,7 +1416,7 @@ int Menu_options(MenuList* list) {
 					int count = 0;
 					while ( item->values && item->values[count]) count++;
 					if (item->value >= 0 && item->value < count) {
-						text = TTF_RenderUTF8_Blended(font.tiny, item->values[item->value], COLOR_WHITE); // always white
+						text = TTF_RenderUTF8_Blended(font.tiny, item->values[item->value], uintToColour(THEME_COLOR4_255)); // always white
 						SDL_BlitSurface(text, NULL, screen, &(SDL_Rect){
 							ox + mw - text->w - SCALE1(OPTION_PADDING),
 							oy+SCALE1((j*BUTTON_SIZE)+3)
@@ -1440,7 +1441,7 @@ int Menu_options(MenuList* list) {
 		if (desc) {
 			int w,h;
 			GFX_sizeText(font.tiny, desc, SCALE1(12), &w,&h);
-			GFX_blitText(font.tiny, desc, SCALE1(12), COLOR_WHITE, screen, &(SDL_Rect){
+			GFX_blitText(font.tiny, desc, SCALE1(12), uintToColour(THEME_COLOR4_255), screen, &(SDL_Rect){
 				(screen->w - w) / 2,
 				screen->h - SCALE1(PADDING) - h,
 				w,h
@@ -1982,7 +1983,7 @@ void Menu_loop(void) {
 			oy = (((DEVICE_HEIGHT / FIXED_SCALE) - PADDING * 2) - (MENU_ITEM_COUNT * PILL_SIZE)) / 2;
 			for (int i=0; i<MENU_ITEM_COUNT; i++) {
 				char* item = menu.items[i];
-				SDL_Color text_color = COLOR_WHITE;
+				SDL_Color text_color = uintToColour(THEME_COLOR4_255);
 				
 				if (i==selected) {
 					text_color = uintToColour(THEME_COLOR5_255);
@@ -2052,14 +2053,14 @@ void Menu_loop(void) {
 					}
 					// LOG_info("raw_preview %ix%i\n", raw_preview->w,raw_preview->h);
 					SDL_Rect preview_rect = {ox,oy,hw,hh};
-					SDL_FillRect(screen, &preview_rect, SDL_MapRGBA(screen->format,0,0,0,255));
+					SDL_FillRect(screen, &preview_rect, THEME_COLOR7);
 					SDL_BlitScaled(bmp,NULL,preview,NULL);
 					SDL_BlitSurface(preview, NULL, screen, &(SDL_Rect){ox,oy});
 					SDL_FreeSurface(bmp);
 				}
 				else {
 					SDL_Rect preview_rect = {ox,oy,hw,hh};
-					SDL_FillRect(screen, &preview_rect, SDL_MapRGBA(screen->format,0,0,0,255));
+					SDL_FillRect(screen, &preview_rect, THEME_COLOR7);
 					if (menu.save_exists) GFX_blitMessage(font.large, "No Preview", screen, &preview_rect);
 					else GFX_blitMessage(font.large, "Empty Slot", screen, &preview_rect);
 				}

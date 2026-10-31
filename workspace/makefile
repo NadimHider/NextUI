@@ -63,7 +63,7 @@ endif
 	cd ./all/audiomon && make all
 	cd ./all/show2/ && make
 endif
-ifdef COMPILE_CORES
+ifneq (,$(filter-out false 0,$(COMPILE_CORES)))
 	make cores
 else
 	echo "skipping core build"

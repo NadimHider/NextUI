@@ -654,7 +654,7 @@ void MenuList::drawListItem(SDL_Surface *surface, const SDL_Rect &dst, const Abs
         TTF_SizeUTF8(font.small, item.getName().c_str(), &w, NULL);
         w += SCALE1(OPTION_PADDING * 2);
 
-        GFX_blitPillDarkCPP(ASSET_BUTTON, surface, {dst.x, dst.y, w, SCALE1(BUTTON_SIZE)});
+        GFX_blitPillDarkCPP(ASSET_BUTTON, surface, {dst.x, dst.y + SCALE1(ROW_PILL_INSET), w, SCALE1(BUTTON_SIZE - ROW_PILL_INSET * 2)});
         text_color = uintToColour(THEME_COLOR5_255);
     }
     text = TTF_RenderUTF8_Blended(font.small, item.getName().c_str(), text_color);
@@ -709,10 +709,14 @@ void MenuList::drawFixedItem(SDL_Surface *surface, const SDL_Rect &dst, const Ab
     // hack - this should be correlated to max_width
     int mw = dst.w;
 
+    if (!selected)
+    {
+        GFX_blitPillColorCPP(ASSET_BUTTON, surface, {dst.x, dst.y + SCALE1(ROW_PILL_INSET), mw, SCALE1(BUTTON_SIZE - ROW_PILL_INSET * 2)}, THEME_COLOR3, RGB_WHITE);
+    }
     if (selected)
     {
-        // gray pill
-        GFX_blitPillLightCPP(ASSET_BUTTON, surface, {dst.x, dst.y, mw, SCALE1(BUTTON_SIZE)});
+        // dark header surface behind the value; accent pill marks the label
+        GFX_blitPillLightCPP(ASSET_BUTTON, surface, {dst.x, dst.y + SCALE1(ROW_PILL_INSET), mw, SCALE1(BUTTON_SIZE - ROW_PILL_INSET * 2)});
     }
 
     if (item.getValue().has_value())
@@ -732,7 +736,7 @@ void MenuList::drawFixedItem(SDL_Surface *surface, const SDL_Rect &dst, const Ab
                 dst.x + dst.w - SCALE1(OPTION_PADDING + FONT_TINY),
                 dst.y + SCALE1(BUTTON_SIZE - FONT_TINY) / 2,
                 SCALE1(FONT_TINY), SCALE1(FONT_TINY)};
-            SDL_FillRect(surface, &rect, RGB_WHITE);
+            SDL_FillRect(surface, &rect, THEME_COLOR6);
             rect = dy(dx(rect, 1), 1);
             rect.h -= 1;
             rect.w -= 1;
@@ -763,7 +767,7 @@ void MenuList::drawFixedItem(SDL_Surface *surface, const SDL_Rect &dst, const Ab
         int w = 0;
         TTF_SizeUTF8(font.small, item.getName().c_str(), &w, NULL);
         w += SCALE1(OPTION_PADDING * 2);
-        GFX_blitPillDarkCPP(ASSET_BUTTON, surface, {dst.x, dst.y, w, SCALE1(BUTTON_SIZE)});
+        GFX_blitPillDarkCPP(ASSET_BUTTON, surface, {dst.x, dst.y + SCALE1(ROW_PILL_INSET), w, SCALE1(BUTTON_SIZE - ROW_PILL_INSET * 2)});
         text_color = uintToColour(THEME_COLOR5_255);
     }
 
@@ -804,7 +808,7 @@ void MenuList::drawInput(SDL_Surface *surface, const SDL_Rect &dst, const SDL_Re
 
 void MenuList::drawInputItem(SDL_Surface *surface, const SDL_Rect &dst, const AbstractMenuItem &item, bool selected)
 {
-    SDL_Color text_color = COLOR_WHITE;
+    SDL_Color text_color = uintToColour(THEME_COLOR4_255);
     SDL_Surface *text;
 
     // hack
@@ -813,14 +817,14 @@ void MenuList::drawInputItem(SDL_Surface *surface, const SDL_Rect &dst, const Ab
     if (selected)
     {
         // gray pill
-        GFX_blitPillLightCPP(ASSET_BUTTON, surface, {dst.x, dst.y, mw, SCALE1(BUTTON_SIZE)});
+        GFX_blitPillLightCPP(ASSET_BUTTON, surface, {dst.x, dst.y + SCALE1(ROW_PILL_INSET), mw, SCALE1(BUTTON_SIZE - ROW_PILL_INSET * 2)});
 
         // white pill
         int w = 0;
         TTF_SizeUTF8(font.small, item.getName().c_str(), &w, NULL);
         w += SCALE1(OPTION_PADDING * 2);
-        GFX_blitPillDarkCPP(ASSET_BUTTON, surface, {dst.x, dst.y, w, SCALE1(BUTTON_SIZE)});
-        text_color = COLOR_BLACK;
+        GFX_blitPillDarkCPP(ASSET_BUTTON, surface, {dst.x, dst.y + SCALE1(ROW_PILL_INSET), w, SCALE1(BUTTON_SIZE - ROW_PILL_INSET * 2)});
+        text_color = uintToColour(THEME_COLOR5_255);
     }
     text = TTF_RenderUTF8_Blended(font.small, item.getName().c_str(), text_color);
     SDL_BlitSurfaceCPP(text, {}, surface, {dst.x + SCALE1(OPTION_PADDING), dst.y + ((dst.h - text->h) / 2)});
@@ -832,7 +836,7 @@ void MenuList::drawInputItem(SDL_Surface *surface, const SDL_Rect &dst, const Ab
     }
     else if (item.getValue().has_value())
     {
-        text = TTF_RenderUTF8_Blended(font.tiny, item.getLabel().c_str(), COLOR_WHITE); // always white
+        text = TTF_RenderUTF8_Blended(font.tiny, item.getLabel().c_str(), uintToColour(THEME_COLOR4_255)); // always white
         SDL_BlitSurfaceCPP(text, {}, surface, {dst.x + mw - text->w - SCALE1(OPTION_PADDING), dst.y + ((dst.h - text->h) / 2)});
         SDL_FreeSurface(text);
     }
@@ -865,7 +869,7 @@ void MenuList::drawMain(SDL_Surface *surface, const SDL_Rect &dst, const SDL_Rec
 
 void MenuList::drawMainItem(SDL_Surface *surface, const SDL_Rect &dst, const AbstractMenuItem &item, bool selected)
 {
-    SDL_Color text_color = COLOR_WHITE;
+    SDL_Color text_color = uintToColour(THEME_COLOR4_255);
     SDL_Surface *text;
 
     // TODO: unique item handling (draws grey text)
@@ -878,7 +882,7 @@ void MenuList::drawMainItem(SDL_Surface *surface, const SDL_Rect &dst, const Abs
     if (selected)
     {
         GFX_blitPillDarkCPP(ASSET_WHITE_PILL, surface, {dst.x, dst.y, max_width, dst.h});
-        text_color = COLOR_BLACK;
+        text_color = uintToColour(THEME_COLOR5_255);
     }
     else if (unique)
     {

@@ -34,3 +34,15 @@ contributor was contacted for consent to relicense. Contributions
 included under the new license were either consented to by their
 authors, or determined to fall below the threshold of copyrightable
 originality.
+
+Personal Fork: Nocturne
+
+This repository also contains a personal fork maintained by Nadim Hider
+under the name "Nocturne". Nocturne is a dark, handheld-first frontend
+variant focused on the Anbernic RG40XX H (H700) running Base OS with NextUI.
+It is not an official NextUI release and is not affiliated with or endorsed
+by the NextUI team or the original MinUI author.
+
+The Nocturne changes preserve upstream compatibility identifiers, notices,
+and the PolyForm Noncommercial 1.0.0 license. See README.md, CONTRIBUTING.md,
+and docs/VALIDATION.md for the fork's scope, build status, and limitations.

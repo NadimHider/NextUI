@@ -11,6 +11,8 @@
 #include "api.h"
 #include "utils.h"
 #include "config.h"
+#include "switcher.h"
+#include "preview_cache.h"
 #include <sys/resource.h>
 #include <pthread.h>
 #include <assert.h>
@@ -463,7 +465,11 @@ static int can_resume = 0;
 static int should_resume = 0; // set to 1 on BTN_RESUME but only if can_resume==1
 static int has_preview = 0;
 static int simple_mode = 0;
+static int currentScreen = SCREEN_GAMELIST;
+static int qm_row = 0, qm_col = 0, qm_slot = 0, qm_shift = 0;
 static int switcher_selected = 0;
+static SwitcherRemoveState switcher_remove = SWITCHER_REMOVE_IDLE;
+static PreviewCache switcher_previews = {0};
 static char slot_path[256];
 static char preview_path[256];
 static int animationdirection = 0;
@@ -1180,6 +1186,12 @@ static void readyResumePath(char* rom_path, int type) {
 	}
 }
 static void readyResume(Entry* entry) {
+	if (!entry) {
+		can_resume = 0;
+		has_preview = 0;
+		slot_path[0] = preview_path[0] = '\0';
+		return;
+	}
 	readyResumePath(entry->path, entry->type);
 }
 
@@ -2252,6 +2264,35 @@ void cleanupImageLoaderPool() {
 }
 ///////////////////////////////////////
 
+static int transition_ms(int duration) {
+	return CFG_getMenuTransitions() ? duration : 0;
+}
+
+static void openQuickMenu(void) {
+	currentScreen = SCREEN_QUICKMENU;
+	qm_col = qm_row = qm_shift = qm_slot = 0;
+	dirty = 1;
+	folderbgchanged = 1;
+	if (!HAS_POWER_BUTTON && !simple_mode) PWR_enableSleep();
+}
+
+static int openSettings(void) {
+	Entry *settings = entryFromPakName("Settings");
+	if (!settings) return 0;
+	openPak(settings->path);
+	Entry_free(settings);
+	return 1;
+}
+
+static void openGameSwitcher(void) {
+	currentScreen = SCREEN_GAMESWITCHER;
+	switcher_selected = 0;
+	switcher_remove = SWITCHER_REMOVE_IDLE;
+	dirty = 1;
+	folderbgchanged = 1;
+}
+
+
 int main (int argc, char *argv[]) {
 	// LOG_info("time from launch to:\n");
 	// unsigned long main_begin = SDL_GetTicks();
@@ -2261,7 +2302,7 @@ int main (int argc, char *argv[]) {
 
 	simple_mode = exists(SIMPLE_MODE_PATH);
 
-	LOG_info("NextUI\n");
+	LOG_info("Nocturne (NextUI personal fork)\n");
 	InitSettings();
 
 	screen = GFX_init(MODE_MAIN);
@@ -2277,15 +2318,15 @@ int main (int argc, char *argv[]) {
 	// start my threaded image loader :D
 	initImageLoaderPool();
 	Menu_init();
-	int qm_row = 0;
-	int qm_col = 0;
-	int qm_slot = 0;
-	int qm_shift = 0;
+	qm_row = qm_col = qm_slot = qm_shift = 0;
 	int qm_slots = QUICK_SWITCHER_COUNT > quick->count ? quick->count : QUICK_SWITCHER_COUNT;
+
+
+
 	// LOG_info("- menu init: %lu\n", SDL_GetTicks() - main_begin);
 
 	int lastScreen = SCREEN_OFF;
-	int currentScreen = CFG_getDefaultView();
+	currentScreen = CFG_getDefaultView();
 
 	if(exists(GAME_SWITCHER_PERSIST_PATH)) {
 		// consider this "consumed", dont bring up the switcher next time we regularly exit a game
@@ -2367,6 +2408,15 @@ int main (int argc, char *argv[]) {
 		had_sink = has_sink;
 
 		int gsanimdir = ANIM_NONE;
+
+		// Deliberate two-button chord: never a bare Select tap. Consume the Menu
+		// tap so returning from the switcher cannot also open Settings.
+		if (!show_setting && currentScreen != SCREEN_GAMESWITCHER &&
+			BTN_MOD_SWITCHER != BTN_NONE && PAD_isPressed(BTN_MENU) &&
+			PAD_justPressed(BTN_MOD_SWITCHER) && !PAD_isPressed(BTN_PLUS) && !PAD_isPressed(BTN_MINUS)) {
+			PAD_cancelTap(BTN_MENU);
+			openGameSwitcher();
+		}
 
 		if (currentScreen == SCREEN_QUICKMENU) {
 			int qm_total = qm_row == 0 ? quick->count : quickActions->count;
@@ -2459,91 +2509,60 @@ int main (int argc, char *argv[]) {
 			}
 		}
 		else if(currentScreen == SCREEN_GAMESWITCHER) {
-			if (PAD_justPressed(BTN_B) || PAD_tappedSelect(now)) {
-				currentScreen = SCREEN_GAMELIST;
-				switcher_selected = 0;
-				dirty = 1;
-				folderbgchanged = 1; // The background painting code is a clusterfuck, just force a repaint here
+			if (PAD_justPressed(BTN_B)) {
+				if (switcher_remove != SWITCHER_REMOVE_IDLE) {
+					switcher_remove = SWITCHER_REMOVE_IDLE;
+					dirty = 1;
+				} else {
+					currentScreen = SCREEN_GAMELIST;
+					switcher_selected = 0;
+					dirty = 1;
+					folderbgchanged = 1;
+				}
 			}
 			else if (recents->count > 0 && PAD_justReleased(BTN_A)) {
-				// this will drop us back into game switcher after leaving the game
-				putFile(GAME_SWITCHER_PERSIST_PATH, "unused");
-				startgame = 1;
+				switcher_remove = SWITCHER_REMOVE_IDLE;
 				Entry *selectedEntry = entryFromRecent(recents->items[switcher_selected]);
-				should_resume = can_resume;
-				Entry_open(selectedEntry);
-				dirty = 1;
-				Entry_free(selectedEntry);
-			}
-			else if (recents->count > 0 && PAD_justReleased(BTN_Y)) {
-				// remove
-				Recent* recentEntry = recents->items[switcher_selected--];
-				Array_remove(recents, recentEntry);
-				Recent_free(recentEntry);
-				saveRecents();
-				if(switcher_selected < 0)
-					switcher_selected = recents->count - 1; // wrap
+				if (selectedEntry) {
+					putFile(GAME_SWITCHER_PERSIST_PATH, "unused");
+					startgame = 1;
+					should_resume = can_resume;
+					Entry_open(selectedEntry);
+					Entry_free(selectedEntry);
+				}
 				dirty = 1;
 			}
-			else if (PAD_justPressed(BTN_RIGHT)) {
-				switcher_selected++;
-				if(switcher_selected == recents->count)
-					switcher_selected = 0; // wrap
+			else if (recents->count > 0 && PAD_justPressed(BTN_Y)) {
+				switcher_remove = Switcher_requestRemove(switcher_remove);
+				if (switcher_remove == SWITCHER_REMOVE_CONFIRMED) {
+					Recent *recentEntry = recents->items[switcher_selected];
+					Array_remove(recents, recentEntry);
+					Recent_free(recentEntry);
+					saveRecents();
+					switcher_selected = Switcher_afterRemove(switcher_selected, recents->count);
+					switcher_remove = SWITCHER_REMOVE_IDLE;
+				}
+				dirty = 1;
+			}
+			else if (recents->count > 1 && PAD_justRepeated(BTN_RIGHT)) {
+				switcher_selected = Switcher_move(switcher_selected, recents->count, 1);
+				switcher_remove = SWITCHER_REMOVE_IDLE;
 				dirty = 1;
 				gsanimdir = SLIDE_LEFT;
 			}
-			else if (PAD_justPressed(BTN_LEFT)) {
-				switcher_selected--;
-				if(switcher_selected < 0)
-					switcher_selected = recents->count - 1; // wrap
+			else if (recents->count > 1 && PAD_justRepeated(BTN_LEFT)) {
+				switcher_selected = Switcher_move(switcher_selected, recents->count, -1);
+				switcher_remove = SWITCHER_REMOVE_IDLE;
 				dirty = 1;
 				gsanimdir = SLIDE_RIGHT;
 			}
 		}
 		else {
 			if (PAD_tappedMenu(now)) {
-				char settings_path[256];
-				snprintf(settings_path, sizeof(settings_path), "%s/Tools/%s/Settings.pak", SDCARD_PATH, PLATFORM);
-				if (exists(settings_path)) {
-					openPak(settings_path);
-				}
-				else {
-					snprintf(settings_path, sizeof(settings_path), "%s/Roms/Tools/%s/Settings.pak", SDCARD_PATH, PLATFORM);
-					if (exists(settings_path)) {
-						openPak(settings_path);
-					}
-					else {
-						currentScreen = SCREEN_QUICKMENU;
-						qm_col = 0;
-						qm_row = 0;
-						qm_shift = 0;
-						qm_slot = 0;
-						dirty = 1;
-						folderbgchanged = 1;
-						if (!HAS_POWER_BUTTON && !simple_mode) PWR_enableSleep();
-					}
-				}
-			}
-			else if (PAD_tappedSelect(now)) {
-				currentScreen = SCREEN_GAMESWITCHER;
-				switcher_selected = 0;
-				dirty = 1;
+				if (!openSettings()) openQuickMenu();
 			}
 			else if (PAD_justPressed(BTN_START)) {
-				char settings_path[256];
-				snprintf(settings_path, sizeof(settings_path), "%s/Tools/%s/Settings.pak", SDCARD_PATH, PLATFORM);
-				if (exists(settings_path)) {
-					openPak(settings_path);
-				}
-				else {
-					currentScreen = SCREEN_QUICKMENU;
-					qm_col = 0;
-					qm_row = 0;
-					qm_shift = 0;
-					qm_slot = 0;
-					dirty = 1;
-					folderbgchanged = 1;
-				}
+				openQuickMenu();
 			}
 			else if (total>0) {
 				if (PAD_justRepeated(BTN_UP)) {
@@ -2610,7 +2629,7 @@ int main (int argc, char *argv[]) {
 				}
 			}
 
-			if (PAD_justRepeated(BTN_L1) && !PAD_isPressed(BTN_R1) && !PWR_ignoreSettingInput(BTN_L1, show_setting)) { // previous alpha
+			if (PAD_justRepeated(BTN_L1) && !PAD_isPressed(BTN_R1) && !PAD_isPressed(BTN_MENU) && !PWR_ignoreSettingInput(BTN_L1, show_setting)) { // previous alpha
 				Entry* entry = top->entries->items[selected];
 				int i = entry->alpha-1;
 				if (i>=0) {
@@ -2623,7 +2642,7 @@ int main (int argc, char *argv[]) {
 					}
 				}
 			}
-			else if (PAD_justRepeated(BTN_R1) && !PAD_isPressed(BTN_L1) && !PWR_ignoreSettingInput(BTN_R1, show_setting)) { // next alpha
+			else if (PAD_justRepeated(BTN_R1) && !PAD_isPressed(BTN_L1) && !PAD_isPressed(BTN_MENU) && !PWR_ignoreSettingInput(BTN_R1, show_setting)) { // next alpha
 				Entry* entry = top->entries->items[selected];
 				int i = entry->alpha+1;
 				if (i<top->alphas->count) {
@@ -2850,6 +2869,12 @@ int main (int argc, char *argv[]) {
 						y += (SCALE1(PILL_SIZE) - rect.h) / 2;
 
 						GFX_blitAssetColor(asset, NULL, screen, &(SDL_Rect){x,y}, icon_color);
+						if (qm_row == 1 && qm_col == c) {
+							int label_w = 0, label_h = 0;
+							GFX_sizeText(font.tiny, item->name, SCALE1(FONT_TINY), &label_w, &label_h);
+							GFX_blitText(font.tiny, item->name, SCALE1(FONT_TINY), uintToColour(THEME_COLOR1_255), screen,
+								&(SDL_Rect){(screen->w - label_w) / 2, oy + item_rect.h + SCALE1(5), label_w, label_h});
+						}
 
 						ox += item_rect.w + SCALE1(MENU_TOGGLE_MARGIN);
 					}
@@ -2862,7 +2887,7 @@ int main (int argc, char *argv[]) {
 				GFX_clearLayers(LAYER_ALL);
 				GFX_clear(screen);
 				GFX_flipHidden();
-				GFX_animateSurfaceOpacity(tmpOldScreen,0,0,screen->w,screen->h,255,0,CFG_getMenuTransitions() ? 150:20,LAYER_BACKGROUND);
+				GFX_animateSurfaceOpacity(tmpOldScreen,0,0,screen->w,screen->h,255,0,transition_ms(150),LAYER_BACKGROUND);
 			}
 			else if(currentScreen == SCREEN_GAMESWITCHER) {
 				GFX_clearLayers(LAYER_ALL);
@@ -2871,15 +2896,23 @@ int main (int argc, char *argv[]) {
 
 				// For all recents with resumable state (i.e. has savegame), show game switcher carousel
 				if(recents->count > 0) {
-					Entry *selectedEntry = entryFromRecent(recents->items[switcher_selected]);
+					Recent *recentEntry = recents->items[switcher_selected];
+					Entry *selectedEntry = entryFromRecent(recentEntry);
 					readyResume(selectedEntry);
+					const char *switcher_name = selectedEntry ? selectedEntry->name : recentEntry->path;
+					const char *slash = strrchr(switcher_name, '/');
+					if (slash) switcher_name = slash + 1;
 					// title pill
 					{
 						int max_width = screen->w - SCALE1(PADDING * 2) - ow;
 
+						char position[32];
+						snprintf(position, sizeof(position), "%02d / %02d", switcher_selected + 1, recents->count);
+						int counter_w = 0, counter_h = 0;
+						GFX_sizeText(font.tiny, position, SCALE1(FONT_TINY), &counter_w, &counter_h);
+						int title_width = MAX(0, max_width - SCALE1(BUTTON_PADDING * 3) - counter_w);
 						char display_name[256];
-						int text_width = GFX_truncateText(font.large, selectedEntry->name, display_name, max_width, SCALE1(BUTTON_PADDING*2));
-						max_width = MIN(max_width, text_width);
+						GFX_truncateText(font.large, switcher_name, display_name, title_width + SCALE1(BUTTON_PADDING * 2), SCALE1(BUTTON_PADDING * 2));
 
 						SDL_Surface* text;
 						SDL_Color textColor = uintToColour(THEME_COLOR6_255);
@@ -2896,29 +2929,41 @@ int main (int argc, char *argv[]) {
 						SDL_BlitSurface(text, &(SDL_Rect){
 							0,
 							0,
-							max_width-SCALE1(BUTTON_PADDING*2),
+							title_width,
 							text->h
 						}, screen, &(SDL_Rect){
 							SCALE1(PADDING+BUTTON_PADDING),
 							SCALE1(PADDING) + text_offset_y,
 						});
 						SDL_FreeSurface(text);
+						GFX_blitText(font.tiny, position, SCALE1(FONT_TINY), uintToColour(THEME_COLOR1_255), screen,
+							&(SDL_Rect){SCALE1(PADDING) + max_width - SCALE1(BUTTON_PADDING) - counter_w,
+								SCALE1(PADDING) + (SCALE1(PILL_SIZE) - counter_h) / 2, counter_w, counter_h});
 					}
 
-					GFX_blitButtonGroup((char*[]){ "B","BACK",  NULL }, 0, screen, 0);
+					if (switcher_remove == SWITCHER_REMOVE_ARMED) {
+						GFX_blitButtonGroup((char*[]){ "B","CANCEL", NULL }, 0, screen, 0);
+						GFX_blitButtonGroup((char*[]){ "Y","CONFIRM", NULL }, 1, screen, 1);
+					}
+					else GFX_blitButtonGroup((char*[]){ "B","BACK",  NULL }, 0, screen, 0);
 
-					if(can_resume) GFX_blitButtonGroup((char*[]){ "Y", "REMOVE", "A","RESUME", NULL }, 1, screen, 1);
-					else GFX_blitButtonGroup((char*[]){ "A","OPEN", NULL }, 1, screen, 1);
+					if (switcher_remove != SWITCHER_REMOVE_ARMED) {
+						if (!selectedEntry)
+							GFX_blitButtonGroup((char*[]){ "Y","REMOVE", NULL }, 1, screen, 1);
+						else if(can_resume)
+							GFX_blitButtonGroup((char*[]){ "Y","REMOVE", "A","RESUME", NULL }, 1, screen, 1);
+						else GFX_blitButtonGroup((char*[]){ "Y","REMOVE", "A","OPEN", NULL }, 1, screen, 1);
+					}
 
-					if(has_preview) {
+					if (!selectedEntry) {
+						SDL_Rect preview_rect = {0,0,screen->w,screen->h};
+						SDL_FillRect(screen, &preview_rect, THEME_COLOR7);
+						GFX_blitMessage(font.large, "Unavailable recent\nRestore its emulator or remove it", screen, &preview_rect);
+					}
+					else if(has_preview) {
 						// lotta memory churn here
 
-						SDL_Surface* bmp = IMG_Load(preview_path);
-						SDL_Surface* raw_preview = SDL_ConvertSurfaceFormat(bmp, screen->format->format, 0);
-						if (raw_preview) {
-							SDL_FreeSurface(bmp);
-							bmp = raw_preview;
-						}
+						SDL_Surface* bmp = PreviewCache_get(&switcher_previews, preview_path, screen->format->format);
 						if(bmp) {
 							int aw = screen->w;
 							int ah = screen->h;
@@ -2941,7 +2986,7 @@ int main (int argc, char *argv[]) {
 							if(lastScreen == SCREEN_GAME) {
 								// need to flip once so streaming_texture1 is updated
 								GFX_flipHidden();
-								GFX_animateSurfaceOpacity(bmp,0,0,screen->w,screen->h,0,255,CFG_getMenuTransitions() ? 150:20,LAYER_ALL);
+								GFX_animateSurfaceOpacity(bmp,0,0,screen->w,screen->h,0,255,transition_ms(150),LAYER_ALL);
 							} else if(lastScreen == SCREEN_GAMELIST) {
 
 								GFX_drawOnLayer(blackBG,0,0,screen->w,screen->h,1.0f,0,LAYER_BACKGROUND);
@@ -2951,16 +2996,16 @@ int main (int argc, char *argv[]) {
 								GFX_clearLayers(LAYER_ALL);
 								folderbgchanged=1;
 								GFX_drawOnLayer(tmpOldScreen,0,0,screen->w, screen->h,1.0f,0,LAYER_ALL);
-								GFX_animateSurface(tmpNewScreen,0,0-screen->h,0,0,screen->w,screen->h,CFG_getMenuTransitions() ? 100:20,255,255,LAYER_BACKGROUND);
+								GFX_animateSurface(tmpNewScreen,0,0-screen->h,0,0,screen->w,screen->h,transition_ms(100),255,255,LAYER_BACKGROUND);
 								SDL_FreeSurface(tmpNewScreen);
 
 							} else if(lastScreen == SCREEN_GAMESWITCHER) {
 								GFX_flipHidden();
 								GFX_drawOnLayer(blackBG,0,0,screen->w, screen->h,1.0f,0,LAYER_BACKGROUND);
 								if(gsanimdir == SLIDE_LEFT)
-									GFX_animateSurface(bmp,ax+screen->w,ay,ax,ay,aw,ah,CFG_getMenuTransitions() ? 80:20,0,255,LAYER_ALL);
+									GFX_animateSurface(bmp,ax+screen->w,ay,ax,ay,aw,ah,transition_ms(80),0,255,LAYER_ALL);
 								else if(gsanimdir == SLIDE_RIGHT)
-									GFX_animateSurface(bmp,ax-screen->w,ay,ax,ay,aw,ah,CFG_getMenuTransitions() ? 80:20,0,255,LAYER_ALL);
+									GFX_animateSurface(bmp,ax-screen->w,ay,ax,ay,aw,ah,transition_ms(80),0,255,LAYER_ALL);
 
 								GFX_drawOnLayer(bmp,ax,ay,aw,ah,1.0f,0,LAYER_BACKGROUND);
 							} else if(lastScreen == SCREEN_QUICKMENU) {
@@ -2968,7 +3013,7 @@ int main (int argc, char *argv[]) {
 								GFX_drawOnLayer(blackBG,0,0,screen->w, screen->h,1.0f,0,LAYER_BACKGROUND);
 								GFX_drawOnLayer(bmp,ax,ay,aw,ah,1.0f,0,LAYER_BACKGROUND);
 							}
-							SDL_FreeSurface(bmp);  // Free after rendering
+							// Preview remains owned by the bounded LRU cache.
 						}
 					}
 					else {
@@ -2976,25 +3021,25 @@ int main (int argc, char *argv[]) {
 						SDL_Surface * tmpsur = SDL_CreateRGBSurfaceWithFormat(0,screen->w,screen->h,screen->format->BitsPerPixel,screen->format->format);
 						SDL_FillRect(tmpsur, &preview_rect, THEME_COLOR7);
 						if(lastScreen == SCREEN_GAME) {
-							GFX_animateSurfaceOpacity(tmpsur,0,0,screen->w,screen->h,255,0,CFG_getMenuTransitions() ? 150:20,LAYER_BACKGROUND);
+							GFX_animateSurfaceOpacity(tmpsur,0,0,screen->w,screen->h,255,0,transition_ms(150),LAYER_BACKGROUND);
 						} else if(lastScreen == SCREEN_GAMELIST) {
-							GFX_animateSurface(tmpsur,0,0-screen->h,0,0,screen->w,screen->h,CFG_getMenuTransitions() ? 100:20,255,255,LAYER_ALL);
+							GFX_animateSurface(tmpsur,0,0-screen->h,0,0,screen->w,screen->h,transition_ms(100),255,255,LAYER_ALL);
 						} else if(lastScreen == SCREEN_GAMESWITCHER) {
 							GFX_flipHidden();
 							if(gsanimdir == SLIDE_LEFT)
-								GFX_animateSurface(tmpsur,0+screen->w,0,0,0,screen->w,screen->h,CFG_getMenuTransitions() ? 80:20,0,255,LAYER_ALL);
+								GFX_animateSurface(tmpsur,0+screen->w,0,0,0,screen->w,screen->h,transition_ms(80),0,255,LAYER_ALL);
 							else if(gsanimdir == SLIDE_RIGHT)
-								GFX_animateSurface(tmpsur,0-screen->w,0,0,0,screen->w,screen->h,CFG_getMenuTransitions() ? 80:20,0,255,LAYER_ALL);
+								GFX_animateSurface(tmpsur,0-screen->w,0,0,0,screen->w,screen->h,transition_ms(80),0,255,LAYER_ALL);
 						}
 						SDL_FreeSurface(tmpsur);
-						GFX_blitMessage(font.large, "No Preview", screen, &preview_rect);
+						GFX_blitMessage(font.large, "No save preview\nYour game is still ready", screen, &preview_rect);
 					}
 					Entry_free(selectedEntry);
 				}
 				else {
 					SDL_Rect preview_rect = {ox,oy,screen->w,screen->h};
 					SDL_FillRect(screen, &preview_rect, 0);
-					GFX_blitMessage(font.large, "No Recents", screen, &preview_rect);
+					GFX_blitMessage(font.large, "No recent games\nOpen a game to begin", screen, &preview_rect);
 					GFX_blitButtonGroup((char*[]){ "B","BACK", NULL }, 1, screen, 1);
 				}
 
@@ -3086,18 +3131,14 @@ int main (int argc, char *argv[]) {
 				// buttons
 				if (show_setting && !GetHDMI()) GFX_blitHardwareHints(screen, show_setting);
 				else if (can_resume) GFX_blitButtonGroup((char*[]){ "X","RESUME",  NULL }, 0, screen, 0);
-				else GFX_blitButtonGroup((char*[]){
-					"MENU","MENU",
-					BTN_SLEEP==BTN_POWER?"POWER":"SLEEP",
-					BTN_SLEEP==BTN_POWER||simple_mode?"SLEEP":"SLEEP",
-					NULL }, 0, screen, 0);
+				else GFX_blitButtonGroup((char*[]){ "MENU","SETTINGS", NULL }, 0, screen, 0);
 
 				if (total==0) {
 					if (stack->count>1) {
 						GFX_blitButtonGroup((char*[]){ "B","BACK",  NULL }, 0, screen, 1);
 					}
 					else {
-						GFX_blitButtonGroup((char*[]){ "START","SETTINGS", NULL }, 0, screen, 1);
+						GFX_blitButtonGroup((char*[]){ "START","QUICK", NULL }, 0, screen, 1);
 					}
 				}
 				else {
@@ -3105,7 +3146,7 @@ int main (int argc, char *argv[]) {
 						GFX_blitButtonGroup((char*[]){ "B","BACK", "A","OPEN", NULL }, 1, screen, 1);
 					}
 					else {
-						GFX_blitButtonGroup((char*[]){ "START","SETTINGS", "A","OPEN", NULL }, 1, screen, 1);
+						GFX_blitButtonGroup((char*[]){ "START","QUICK", "A","OPEN", NULL }, 1, screen, 1);
 					}
 				}
 
@@ -3145,12 +3186,12 @@ int main (int argc, char *argv[]) {
 
 						SDL_LockMutex(fontMutex);
 						SDL_Surface* text = TTF_RenderUTF8_Blended(font.large, entry_name, text_color);
-						SDL_Surface* text_unique = TTF_RenderUTF8_Blended(font.large, display_name, COLOR_DARK_TEXT);
+						SDL_Surface* text_unique = TTF_RenderUTF8_Blended(font.large, display_name, row_is_selected ? uintToColour(THEME_COLOR5_255) : uintToColour(THEME_COLOR6_255));
 						SDL_UnlockMutex(fontMutex);
 						// TODO: Use actual font metrics to center, this only works in simple cases
 						const int text_offset_y = (SCALE1(PILL_SIZE) - text->h + 1) >> 1;
 						if (row_is_selected) {
-							is_scrolling = list_show_entry_names && GFX_textShouldScroll(font.large,display_name, max_width - SCALE1(BUTTON_PADDING*2), fontMutex);
+							is_scrolling = list_show_entry_names && CFG_getMenuAnimations() && GFX_textShouldScroll(font.large,display_name, max_width - SCALE1(BUTTON_PADDING*2), fontMutex);
 							GFX_resetScrollText();
 							bool should_animate = previous_depth == stack->count;
 							SDL_LockMutex(animMutex);
@@ -3158,20 +3199,20 @@ int main (int argc, char *argv[]) {
 								SDL_FreeSurface(globalpill);
 								globalpill=NULL;
 							}
-							globalpill = SDL_CreateRGBSurfaceWithFormat(SDL_SWSURFACE, max_width, SCALE1(PILL_SIZE), FIXED_DEPTH, screen->format->format);
-							GFX_blitPillDark(ASSET_WHITE_PILL, globalpill, &(SDL_Rect){0,0, max_width, SCALE1(PILL_SIZE)});
+							globalpill = SDL_CreateRGBSurfaceWithFormat(SDL_SWSURFACE, max_width, SCALE1(PILL_SIZE - ROW_PILL_INSET * 2), FIXED_DEPTH, screen->format->format);
+							GFX_blitPillDark(ASSET_WHITE_PILL, globalpill, &(SDL_Rect){0,0, max_width, SCALE1(PILL_SIZE - ROW_PILL_INSET * 2)});
 							globallpillW =  max_width;
 							SDL_UnlockMutex(animMutex);
 							updatePillTextSurface(entry_name, max_width, uintToColour(THEME_COLOR5_255));
 							AnimTask* task = malloc(sizeof(AnimTask));
 							task->startX = SCALE1(BUTTON_MARGIN);
-							task->startY = SCALE1(previousY+PADDING);
+							task->startY = SCALE1(previousY+PADDING+ROW_PILL_INSET);
 							task->targetX = SCALE1(BUTTON_MARGIN);
-							task->targetY = SCALE1(targetY+PADDING);
+							task->targetY = SCALE1(targetY+PADDING+ROW_PILL_INSET);
 							task->targetTextY = SCALE1(PADDING + targetY) + text_offset_y;
 							pilltargetTextY = task->targetTextY;
 							task->move_w = max_width;
-							task->move_h = SCALE1(PILL_SIZE);
+							task->move_h = SCALE1(PILL_SIZE - ROW_PILL_INSET * 2);
 							task->frames = should_animate && CFG_getMenuAnimations() ? 3:1;
 							task->entry_name = strdup(notext ? " " : entry_name);
 							animPill(task);
@@ -3180,6 +3221,10 @@ int main (int argc, char *argv[]) {
 						SDL_Rect dest_rect = { SCALE1(BUTTON_MARGIN + BUTTON_PADDING), SCALE1(PADDING + (j * PILL_SIZE)) + text_offset_y };
 
 						if(list_show_entry_names) {
+							if (!row_is_selected) {
+								SDL_Rect row_rect = {SCALE1(BUTTON_MARGIN), SCALE1(PADDING + j * PILL_SIZE + ROW_PILL_INSET), max_width, SCALE1(PILL_SIZE - ROW_PILL_INSET * 2)};
+								GFX_blitPillColor(ASSET_WHITE_PILL, screen, &row_rect, THEME_COLOR3, RGB_WHITE);
+							}
 							SDL_BlitSurface(text_unique, &text_rect, screen, &dest_rect);
 							SDL_BlitSurface(text, &text_rect, screen, &dest_rect);
 						}
@@ -3193,12 +3238,12 @@ int main (int argc, char *argv[]) {
 							folderbgchanged=1;
 
 							GFX_flipHidden();
-							GFX_animateSurface(switcherSur,0,0,0,0-screen->h,screen->w,screen->h,CFG_getMenuTransitions() ? 100:20,255,255,LAYER_BACKGROUND);
+							GFX_animateSurface(switcherSur,0,0,0,0-screen->h,screen->w,screen->h,transition_ms(100),255,255,LAYER_BACKGROUND);
 							animationdirection = ANIM_NONE;
 						}
 					}
 					if(lastScreen==SCREEN_OFF) {
-						GFX_animateSurfaceOpacity(blackBG,0,0,screen->w,screen->h,255,0,CFG_getMenuTransitions() ? 200:20,LAYER_THUMBNAIL);
+						GFX_animateSurfaceOpacity(blackBG,0,0,screen->w,screen->h,255,0,transition_ms(200),LAYER_THUMBNAIL);
 					}
 
 					previous_row = selected_row;
@@ -3228,7 +3273,7 @@ int main (int argc, char *argv[]) {
 					// blinking in after the transition animation ends.
 					if (currentScreen == SCREEN_GAMELIST && total > 0 && globalpill && list_show_entry_names) {
 						SDL_LockMutex(animMutex);
-						GFX_drawOnLayer(globalpill, SCALE1(BUTTON_MARGIN), (int)SCALE1(targetY + PADDING), globallpillW, globalpill->h, 1.0f, 0, LAYER_TRANSITION);
+						GFX_drawOnLayer(globalpill, SCALE1(BUTTON_MARGIN), (int)SCALE1(targetY + PADDING + ROW_PILL_INSET), globallpillW, globalpill->h, 1.0f, 0, LAYER_TRANSITION);
 						if (globalText) {
 							GFX_drawOnLayer(globalText, SCALE1(BUTTON_MARGIN + BUTTON_PADDING), pilltargetTextY, globalText->w, globalText->h, 1.0f, 0, LAYER_SCROLLTEXT);
 						}
@@ -3457,6 +3502,7 @@ int main (int argc, char *argv[]) {
 		}
 	}
 
+	PreviewCache_clear(&switcher_previews);
 	Menu_quit();
 	PWR_quit();
 	PAD_quit();

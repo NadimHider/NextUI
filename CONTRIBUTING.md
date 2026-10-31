@@ -1,6 +1,6 @@
-# Contributing to NextUI
+# Contributing to Nocturne
 
-Thanks for your interest in contributing. This document covers the basics of how to get involved.
+Thanks for your interest in this personal NextUI fork. Nocturne is primarily tuned for the Anbernic RG40XX H (H700). Keep changes focused, preserve upstream notices and compatibility identifiers, and test on hardware before proposing broad frontend changes.
 
 ## Ways to Contribute
 
@@ -28,7 +28,7 @@ PRs that introduce large or unilateral changes without prior discussion may be c
 
 ## License
 
-By contributing to NextUI, you agree that your contributions will be licensed under
+By contributing to Nocturne, you agree that your contributions will be licensed under
 [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0).
 You retain copyright over your own contributions.
 
@@ -40,5 +40,5 @@ to the above and confirming that you have the right to do so.
 
 ## Upstream
 
-NextUI is a fork of [MinUI](https://github.com/shauninman/MinUI) by Shaun Inman.
+Nocturne is a personal fork of [NextUI](https://github.com/LoveRetro/NextUI), which is a fork of [MinUI](https://github.com/shauninman/MinUI) by Shaun Inman.
 Contributions should be mindful of that heritage. See [NOTICE](NOTICE) for details.

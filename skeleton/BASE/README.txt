@@ -1,7 +1,10 @@
-NextUI (formerly MinUI Next), a custom OS based of MinUI with screen sync fixes and many many more features!
+Nocturne: a dark, handheld-first personal fork of NextUI for the Anbernic RG40XX H.
 
-Source:
+Upstream source:
 https://github.com/LoveRetro/NextUI
+
+Nocturne is not an official NextUI release. Preserve the MinUI.zip payload name,
+.system/h700 paths, and .userdata layout when updating.
 
 ----------------------------------------
 Installing
@@ -58,20 +61,23 @@ Copy "MinUI.zip" (without unzipping) to the root of the SD card containing your 
 ----------------------------------------
 Shortcuts
 
-TRIMUI SMART PRO / TRIMUI BRICK
+Nocturne frontend defaults (H700 / RG40XX H):
 
-  Mute: FN switch (volume and rumble)
-  "TrimUI" button: Quick menu
-  Select button: Game switcher
+  Menu tap: Settings (falls back to Quick menu if Settings is unavailable)
+  Start: Quick menu
+  Menu + R1: Game switcher
+  Select: unassigned at the frontend level
+  Menu + Volume: brightness
+  Color temperature: Settings > Display
 
-TRIMUI BRICK / BRICK PRO / SMART PRO S
+In game:
 
-  Buttons with no action of their own can be assigned a pak to launch: L3/R3 on the Brick, L4/R4 on the Brick Pro, and HOME on the Brick Pro and Smart Pro S. Assign them under Settings > Assignments. Assignments only apply in the main menu, not in-game. HOME no longer acts as a second menu button.
+  Menu: MinArch menu
+  Menu + R1: Game switcher (default)
+  Other MinArch shortcuts: unassigned by default; configure in MinArch
 
-ANBERNIC RG XX
-
-  Menu button: Quick menu
-  Select button: Game switcher
+Other platforms may retain hardware-specific keys, but Select no longer opens
+the game switcher in the Nocturne frontend.
 
 ----------------------------------------
 Quicksave & auto-resume

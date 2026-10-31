@@ -25,7 +25,7 @@ CC = $(CROSS_COMPILE)gcc
 # Override CFLAGS and LDFLAGS to not include SDL2 dependencies
 CFLAGS = $(OPT) -g -std=gnu11 -Wall -Wextra
 CFLAGS += $(INCDIR) -DPLATFORM=\"$(PLATFORM)\"
-LDFLAGS = -lpthread -ldl
+LDFLAGS = -lpthread -ldl -lm
 
 BUILDDIR = build/$(PLATFORM)
 

@@ -1,39 +1,33 @@
-NextUI Color Palettes
-----------------------------------------
+Nocturne color palettes
+----------------------
 
-Drop custom color palette files (.txt) in this folder. They will show up under
-Settings > Appearance > Color Palette, alongside the built-in palettes, and can be
-shared with others by simply copying the file.
+Built in: Nocturne (moonstone), Ember (warm gold), Iris (dusk violet),
+and Tidal (steel blue). All four are dark-only.
 
-Each palette is a plain text file. Example (my_palette.txt):
+Drop a version=1 .txt file in this folder to add a palette under
+Settings > Appearance > Color palette. Files are sorted by name.
 
     version=1
-    name=Example
-    color1=0xffffffff
-    color2=0x9b2257ff
-    color3=0x1e2329ff
-    color4=0xffffffff
-    color5=0x000000ff
-    color6=0x000000ff
-    color7=0xffffffff
+    name=My night palette
+    color1=0x8BD3C7FF
+    color2=0x12191FFF
+    color3=0x24313AFF
+    color4=0xE4EBEFFF
+    color5=0x071210FF
+    color6=0xA7B6C0FF
+    color7=0x070A0DFF
 
-Fields
-------
-version   Palette file format version. Use 1. Files with a version newer than the
-          running NextUI build supports are ignored.
-name      The label shown in the menu. If omitted, the file name is used (with
-          underscores turned into spaces).
-color1    Main color - main UI elements.
-color2    Primary accent - highlights important things.
-color3    Secondary accent.
-color4    List text.
-color5    List text (selected).
-color6    Hint / info text (button hints).
-color7    Background - used when no background image is set.
+color1  Selection fill / accent
+color2  Header, footer and notification surface
+color3  Raised cards and unselected controls
+color4  Primary text
+color5  Selection text (derived automatically from color1)
+color6  Secondary text and button hints
+color7  Backdrop
 
-Colors are packed hex. Both 0xRRGGBB and 0xRRGGBBAA are accepted; when the alpha
-byte is omitted the color is treated as fully opaque. Any color you leave out
-falls back to the NextUI default for that slot.
-
-Built-in palettes live with the system files and cannot be edited. Copy one here
-and rename it to use it as a starting point for your own.
+Colors are 0xRRGGBB or 0xRRGGBBAA. UI surfaces are forced opaque.
+Imported light surfaces are darkened and low-contrast text is lifted at
+the settings boundary; the original file is never modified. This keeps
+old NextUI palettes usable without introducing a light frontend theme.
+The RG40XX H has an IPS LCD: this is a visual palette, not an OLED
+power-saving feature. Adjust device brightness to your environment.

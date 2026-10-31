@@ -1,0 +1,9 @@
+version=1
+name=Tidal
+color1=0x8BBED3FF
+color2=0x111A20FF
+color3=0x22333EFF
+color4=0xE2EDF2FF
+color5=0x08131AFF
+color6=0xA3B8C4FF
+color7=0x070C10FF

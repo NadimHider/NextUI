@@ -588,10 +588,42 @@ void Config_readOptions(void) {
 	Config_readOptionsString(config.default_cfg);
 	Config_readOptionsString(config.user_cfg);
 }
+static void Config_migrateNocturneShortcuts(void);
 void Config_readControls(void) {
 	Config_readControlsString(config.default_cfg);
 	Config_readControlsString(config.user_cfg);
+	Config_migrateNocturneShortcuts();
 }
+/* One-time migration of the personal fork's aggressive shortcut defaults.
+ * Only exact legacy defaults are changed; a user-chosen different binding is
+ * left alone. The marker lives in the active MinArch config, never in a save.
+ * Config_write preserves the loaded options and remaps while adding it. */
+void Config_write(int override);
+static void Config_migrateNocturneShortcuts(void) {
+	if (!config.user_cfg) return;
+	char profile[8] = {0};
+	if (Config_getValue(config.user_cfg, "nocturne_shortcuts", profile, NULL) && atoi(profile) == 1) return;
+	static const struct { int index, local, mod; } legacy[] = {
+		{SHORTCUT_SAVE_STATE, BTN_ID_X, 1},
+		{SHORTCUT_LOAD_STATE, BTN_ID_Y, 1},
+		{SHORTCUT_SAVE_QUIT, BTN_ID_START, 1},
+		{SHORTCUT_TOGGLE_FF, BTN_ID_R1, 1},
+		{SHORTCUT_HOLD_REWIND, BTN_ID_L1, 1},
+		{SHORTCUT_GAMESWITCHER, BTN_ID_SELECT, 1},
+	};
+	int changed = 0;
+	for (size_t i = 0; i < sizeof(legacy)/sizeof(legacy[0]); i++) {
+		ButtonMapping *mapping = &config.shortcuts[legacy[i].index];
+		if (mapping->local == legacy[i].local && mapping->mod == legacy[i].mod) {
+			mapping->local = mapping->default_;
+			mapping->mod = mapping->default_ != BTN_ID_NONE;
+			changed = 1;
+		}
+	}
+	if (changed || !strstr(config.user_cfg, "nocturne_shortcuts"))
+		Config_write(config.loaded == CONFIG_GAME);
+}
+
 void Config_write(int override) {
 	char path[MAX_PATH];
 	// sprintf(path, "%s/%s.cfg", core.config_dir, game.alt_name);
@@ -651,6 +683,9 @@ void Config_write(int override) {
 		if (mapping->mod) j += LOCAL_BUTTON_COUNT;
 		fprintf(file, "bind %s = %s\n", mapping->name, button_labels[j]);
 	}
+	/* Personal-fork migration marker. Written with the active config so the
+	 * legacy shortcut defaults are only rewritten once. */
+	fprintf(file, "%s = 1\n", "nocturne_shortcuts");
 	
 	fclose(file);
 	sync();
@@ -1727,28 +1762,27 @@ struct Config config = {
 	}},
 	.controls = default_button_mapping,
 	.shortcuts = (ButtonMapping[]){
-		[SHORTCUT_SAVE_STATE]			= {"Save State",		-1, BTN_ID_X, 1, BTN_ID_X, 0},
-		[SHORTCUT_LOAD_STATE]			= {"Load State",		-1, BTN_ID_Y, 1, BTN_ID_Y, 0},
-		[SHORTCUT_RESET_GAME]			= {"Reset Game",		-1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
-		[SHORTCUT_SAVE_QUIT]			= {"Save & Quit",		-1, BTN_ID_START, 1, BTN_ID_START, 0},
-		[SHORTCUT_CYCLE_SCALE]			= {"Cycle Scaling",		-1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
-		[SHORTCUT_CYCLE_EFFECT]			= {"Cycle Effect",		-1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
-		[SHORTCUT_TOGGLE_FF]			= {"Toggle FF",			-1, BTN_ID_R1, 1, BTN_ID_R1, 0},
-		[SHORTCUT_HOLD_FF]				= {"Hold FF",			-1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
-		[SHORTCUT_TOGGLE_REWIND]		= {"Toggle Rewind",		-1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
-		[SHORTCUT_HOLD_REWIND]			= {"Hold Rewind",		-1, BTN_ID_L1, 1, BTN_ID_L1, 0},
-		[SHORTCUT_GAMESWITCHER]			= {"Game Switcher",		-1, BTN_ID_SELECT, 1, BTN_ID_SELECT, 0},
-		[SHORTCUT_SCREENSHOT]           = {"Screenshot",        -1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
+		[SHORTCUT_SAVE_STATE]       = {"Save State",      -1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
+		[SHORTCUT_LOAD_STATE]       = {"Load State",      -1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
+		[SHORTCUT_RESET_GAME]       = {"Reset Game",      -1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
+		[SHORTCUT_SAVE_QUIT]        = {"Save & Quit",     -1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
+		[SHORTCUT_CYCLE_SCALE]      = {"Cycle Scaling",   -1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
+		[SHORTCUT_CYCLE_EFFECT]     = {"Cycle Effect",    -1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
+		[SHORTCUT_TOGGLE_FF]        = {"Toggle FF",       -1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
+		[SHORTCUT_HOLD_FF]          = {"Hold FF",         -1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
+		[SHORTCUT_TOGGLE_REWIND]    = {"Toggle Rewind",   -1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
+		[SHORTCUT_HOLD_REWIND]      = {"Hold Rewind",     -1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
+		[SHORTCUT_GAMESWITCHER]     = {"Game Switcher",   -1, BTN_ID_R1, 1, BTN_ID_R1, 0},
+		[SHORTCUT_SCREENSHOT]       = {"Screenshot",      -1, BTN_ID_NONE, 0, BTN_ID_NONE, 0},
 		// Trimui only
-		[SHORTCUT_TOGGLE_TURBO_A]		= {"Toggle Turbo A",	-1, BTN_ID_NONE, 0},
-		[SHORTCUT_TOGGLE_TURBO_B]		= {"Toggle Turbo B",	-1, BTN_ID_NONE, 0},
-		[SHORTCUT_TOGGLE_TURBO_X]		= {"Toggle Turbo X",	-1, BTN_ID_NONE, 0},
-		[SHORTCUT_TOGGLE_TURBO_Y]		= {"Toggle Turbo Y",	-1, BTN_ID_NONE, 0},
-		[SHORTCUT_TOGGLE_TURBO_L]		= {"Toggle Turbo L",	-1, BTN_ID_NONE, 0},
-		[SHORTCUT_TOGGLE_TURBO_L2]		= {"Toggle Turbo L2",	-1, BTN_ID_NONE, 0},
-		[SHORTCUT_TOGGLE_TURBO_R]		= {"Toggle Turbo R",	-1, BTN_ID_NONE, 0},
-		[SHORTCUT_TOGGLE_TURBO_R2]		= {"Toggle Turbo R2",	-1, BTN_ID_NONE, 0},
-		// -----
+		[SHORTCUT_TOGGLE_TURBO_A]   = {"Toggle Turbo A",  -1, BTN_ID_NONE, 0},
+		[SHORTCUT_TOGGLE_TURBO_B]   = {"Toggle Turbo B",  -1, BTN_ID_NONE, 0},
+		[SHORTCUT_TOGGLE_TURBO_X]   = {"Toggle Turbo X",  -1, BTN_ID_NONE, 0},
+		[SHORTCUT_TOGGLE_TURBO_Y]   = {"Toggle Turbo Y",  -1, BTN_ID_NONE, 0},
+		[SHORTCUT_TOGGLE_TURBO_L]   = {"Toggle Turbo L",  -1, BTN_ID_NONE, 0},
+		[SHORTCUT_TOGGLE_TURBO_L2]  = {"Toggle Turbo L2", -1, BTN_ID_NONE, 0},
+		[SHORTCUT_TOGGLE_TURBO_R]   = {"Toggle Turbo R",  -1, BTN_ID_NONE, 0},
+		[SHORTCUT_TOGGLE_TURBO_R2]  = {"Toggle Turbo R2", -1, BTN_ID_NONE, 0},
 		{NULL}
 	},
 };

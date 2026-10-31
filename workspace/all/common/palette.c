@@ -80,6 +80,10 @@ static bool palette_loadFile(const char *path, const char *filename, bool builti
     if (out->version > PALETTE_VERSION_MAX)
         return false;
 
+    for (int i = 0; i < PALETTE_COLOR_COUNT; i++)
+        out->colors[i] = Theme_normalizeColor(i + 1, out->colors[i]);
+    out->colors[4] = Theme_contrastText(out->colors[0]);
+
     if (!haveName)
         palette_nameFromFilename(filename, out->name, sizeof(out->name));
 
@@ -110,6 +114,13 @@ static int palette_scanDir(const char *dirpath, bool builtin, ColorPalette *out,
     return count;
 }
 
+static int palette_compare(const void *a, const void *b)
+{
+    const ColorPalette *pa = a, *pb = b;
+    if (pa->builtin != pb->builtin) return pa->builtin ? -1 : 1;
+    return strcasecmp(pa->name, pb->name);
+}
+
 int PALETTE_enumerate(ColorPalette *out, int max)
 {
     if (!out || max <= 0)
@@ -119,6 +130,7 @@ int PALETTE_enumerate(ColorPalette *out, int max)
     // Built-ins first (read-only), then user/community drop-ins.
     count = palette_scanDir(RES_PATH "/palettes", true, out, max, count);
     count = palette_scanDir(SDCARD_PATH "/Palettes", false, out, max, count);
+    qsort(out, count, sizeof(*out), palette_compare);
     return count;
 }
 

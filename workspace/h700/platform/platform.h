@@ -137,7 +137,8 @@ extern int needs_portrait_sdl; // DEVICE=rg28xx: SDL rotates onto the portrait p
 #define BTN_WAKE 			BTN_POWER
 #define BTN_MOD_VOLUME 		BTN_NONE
 #define BTN_MOD_BRIGHTNESS 	BTN_MENU
-#define BTN_MOD_COLORTEMP 	BTN_SELECT
+#define BTN_MOD_COLORTEMP 	BTN_NONE
+#define BTN_MOD_SWITCHER 	BTN_R1
 #define BTN_MOD_PLUS 		BTN_PLUS
 #define BTN_MOD_MINUS 		BTN_MINUS
 

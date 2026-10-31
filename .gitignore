@@ -48,3 +48,6 @@ CLAUDE.md
 .worktrees/
 
 release_assets/
+
+# Nocturne host tests
+tests/nocturne/build/

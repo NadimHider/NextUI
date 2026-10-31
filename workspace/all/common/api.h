@@ -538,8 +538,9 @@ int PAD_isPressed(int btn);
 int PAD_justReleased(int btn);
 int PAD_justRepeated(int btn);
 
-int PAD_tappedMenu(uint32_t now); // special case, returns 1 on release of BTN_MENU within 250ms if BTN_PLUS/BTN_MINUS haven't been pressed
-int PAD_tappedSelect(uint32_t now); // special case, returns 1 on release of BTN_SELECT within 250ms if BTN_PLUS/BTN_MINUS haven't been pressed
+void PAD_cancelTap(int btn); // consume a tap after a chord or another action
+int PAD_tappedMenu(uint32_t now); // release within 450ms, unless consumed by a chord
+int PAD_tappedSelect(uint32_t now); // retained for pak compatibility; Select is unassigned in Nocturne
 
 ///////////////////////////////
 #define VIB_sleepStrength 4

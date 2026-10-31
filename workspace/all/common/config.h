@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "theme.h"
 
 // portability, deprecated
 extern uint32_t THEME_COLOR1_255;
@@ -200,16 +201,16 @@ typedef struct
 #define TRANSITION_SNAPPY 1
 #define TRANSITION_COMFY  2
 
-#define CFG_DEFAULT_FONT_FILE "DepartureMono-Regular.otf"  // Departure Mono (Default)
-#define CFG_DEFAULT_FONT_STYLE 0x01 // TTF_STYLE_BOLD (MinUI default)
-#define CFG_DEFAULT_FONT_SIZE 1 // Medium (14pt, sleek)
-#define CFG_DEFAULT_COLOR1 0xffffffffU
-#define CFG_DEFAULT_COLOR2 0x9b2257ffU
-#define CFG_DEFAULT_COLOR3 0x1e2329ffU
-#define CFG_DEFAULT_COLOR4 0xffffffffU
-#define CFG_DEFAULT_COLOR5 0x000000ffU
-#define CFG_DEFAULT_COLOR6 0xffffffffU
-#define CFG_DEFAULT_COLOR7 0x000000ffU
+#define CFG_DEFAULT_FONT_FILE "DepartureMono-Regular.otf"
+#define CFG_DEFAULT_FONT_STYLE 0x00 // regular: preserve the font's own strokes
+#define CFG_DEFAULT_FONT_SIZE 1 // Comfortable, tuned for a 4-inch 640x480 panel
+#define CFG_DEFAULT_COLOR1 NOCTURNE_SELECTION
+#define CFG_DEFAULT_COLOR2 NOCTURNE_SURFACE
+#define CFG_DEFAULT_COLOR3 NOCTURNE_RAISED
+#define CFG_DEFAULT_COLOR4 NOCTURNE_TEXT
+#define CFG_DEFAULT_COLOR5 NOCTURNE_ON_SELECT
+#define CFG_DEFAULT_COLOR6 NOCTURNE_MUTED
+#define CFG_DEFAULT_COLOR7 NOCTURNE_BACKDROP
 #define CFG_DEFAULT_COLOR_MAIN CFG_DEFAULT_COLOR1
 #define CFG_DEFAULT_COLOR_ACCENT CFG_DEFAULT_COLOR2
 #define CFG_DEFAULT_COLOR_ACCENT2 CFG_DEFAULT_COLOR3
@@ -276,8 +277,8 @@ typedef struct
 #define CFG_DEFAULT_RA_ACHIEVEMENT_SORT_ORDER RA_SORT_UNLOCKED_FIRST
 
 // Transition animation parameters (fixed per mode)
-#define TRANSITION_SNAPPY_DURATION  150
-#define TRANSITION_COMFY_DURATION   250
+#define TRANSITION_SNAPPY_DURATION  100
+#define TRANSITION_COMFY_DURATION   160
 #define TRANSITION_CURVE            1   // ANIM_EASE_OUT
 #define TRANSITION_INTENSITY        3
 

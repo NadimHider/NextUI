@@ -27,15 +27,7 @@ void input_poll_callback(void) {
 	if (PAD_isPressed(BTN_MENU) && (PAD_isPressed(BTN_PLUS) || PAD_isPressed(BTN_MINUS))) {
 		ignore_menu = 1;
 	}
-	if (PAD_isPressed(BTN_MENU) && PAD_isPressed(BTN_SELECT)) {
-		ignore_menu = 1;
-		newScreenshot = 1;
-		quit = 1;
-		Menu_saveState();
-		putFile(GAME_SWITCHER_PERSIST_PATH, game.path + strlen(SDCARD_PATH));
-		GFX_clear(screen);
 
-	}
 
 	if (PAD_justPressed(BTN_POWER)) {
 
@@ -48,8 +40,8 @@ void input_poll_callback(void) {
 	rewind_pressed = 0;
 	for (int i=0; i<SHORTCUT_COUNT; i++) {
 		ButtonMapping* mapping = &config.shortcuts[i];
+		if (mapping->local < 0 || mapping->local >= BTN_ID_COUNT) continue;
 		int btn = 1 << mapping->local;
-		if (btn==BTN_NONE) continue; // not bound
 		if (!mapping->mod || PAD_isPressed(BTN_MENU)) {
 			if (i==SHORTCUT_TOGGLE_FF) {
 				if (PAD_justPressed(btn)) {
@@ -198,8 +190,8 @@ void input_poll_callback(void) {
 	buttons = 0;
 	for (int i=0; config.controls[i].name; i++) {
 		ButtonMapping* mapping = &config.controls[i];
+		if (mapping->local < 0 || mapping->local >= BTN_ID_COUNT) continue;
 		int btn = 1 << mapping->local;
-		if (btn==BTN_NONE) continue; // present buttons can still be unbound
 		if (mapping->local >= 0 && mapping->local < LOCAL_BUTTON_COUNT && (consumed_mask >> mapping->local) & 1) continue;
 		if (gamepad_type==0) {
 			switch(btn) {

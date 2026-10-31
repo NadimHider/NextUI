@@ -1,7 +1,10 @@
-NextUI (formerly MinUI Next), a custom OS based of MinUI with screen sync fixes and many many more features!
+Nocturne: a dark, handheld-first personal fork of NextUI for the Anbernic RG40XX H.
 
-Source:
+Upstream source:
 https://github.com/LoveRetro/NextUI
+
+Nocturne is not an official NextUI release. Preserve the MinUI.zip payload name,
+.system/h700 paths, and .userdata layout when updating.
 
 ----------------------------------------
 Installing

@@ -240,7 +240,7 @@ NetworkItem::NetworkItem(WIFI_network n, bool connected, MenuList* submenu)
 void NetworkItem::drawCustomItem(SDL_Surface *surface, const SDL_Rect &dst, const AbstractMenuItem &item, bool selected) const
 {
     SDL_Color text_color = uintToColour(THEME_COLOR4_255);
-    SDL_Surface *text = TTF_RenderUTF8_Blended(font.tiny, item.getLabel().c_str(), COLOR_WHITE); // always white
+    SDL_Surface *text = TTF_RenderUTF8_Blended(font.tiny, item.getLabel().c_str(), uintToColour(THEME_COLOR4_255)); // always white
 
     // hack - this should be correlated to max_width
     int mw = dst.w;

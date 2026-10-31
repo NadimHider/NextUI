@@ -161,7 +161,6 @@ void CFG_init(FontLoad_callback_t cb, ColorSet_callback_t ccb)
         while (fgets(line, sizeof(line), file))
         {
             int temp_value;
-            uint32_t temp_color;
             if (strncmp(line, "font=", 5) == 0)
             {
                 char *value = line + 5;
@@ -603,6 +602,7 @@ uint32_t CFG_getColor(int color_id)
 
 void CFG_setColor(int color_id, uint32_t color)
 {
+    color = Theme_normalizeColor(color_id, color);
     switch (color_id)
     {
     case 1:
@@ -635,6 +635,13 @@ void CFG_setColor(int color_id, uint32_t color)
         break;
     default:
         break;
+    }
+
+    // Selection text is semantic, not an independent theme choice. Derive it
+    // whenever the selection fill changes so imported palettes stay readable.
+    if (color_id == COLOR_MAIN || color_id == COLOR_LIST_TEXT_SELECTED) {
+        settings.color5_255 = Theme_contrastText(settings.color1_255);
+        THEME_COLOR5_255 = settings.color5_255;
     }
 
     if(settings.onColorSet)

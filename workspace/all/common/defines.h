@@ -72,11 +72,14 @@
 #define PADDING 10 // PILL_SIZE / 3 (or non-integer part of the previous calculatiom divided by three)
 #endif
 
-#define FONT_LARGE 14 	// menu (reduced default for sleeker UI)
-#define FONT_MEDIUM 14 	// single char button label
-#define FONT_SMALL 12	// button hint
-#define FONT_TINY 10	// multi char button label
-#define FONT_MICRO 7	// icon overlay text
+#define FONT_LARGE 16  // game list and primary headings
+#define FONT_MEDIUM 14 // button glyphs and compact headings
+#define FONT_SMALL 12  // settings rows and button hints
+#define FONT_TINY 10   // secondary labels
+#define FONT_MICRO 8   // battery percentage
+
+// Leave a physical pixel of breathing room between adjacent list rows.
+#define ROW_PILL_INSET 1
 
 #ifndef MAX_LIGHTS
 #define MAX_LIGHTS 0
@@ -139,6 +142,10 @@ enum
 
 #ifndef JOY_MENU_ALT2
 #define JOY_MENU_ALT2 JOY_NA
+#endif
+
+#ifndef BTN_MOD_SWITCHER
+#define BTN_MOD_SWITCHER BTN_NONE
 #endif
 
 #ifndef AXIS_L2

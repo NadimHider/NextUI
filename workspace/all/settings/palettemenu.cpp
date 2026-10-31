@@ -87,6 +87,10 @@ AbstractMenuItem* buildPaletteMenuItem()
             for (const auto &p : palettesForSetter)
                 if (name == p.name) { PALETTE_apply(&p); return; }
         },
-        []() { CFG_clearPalette(); }, // "Reset to defaults": detach only, colors reset by each color item's own on_reset
+        []() {
+            const uint32_t defaults[7] = {CFG_DEFAULT_COLOR1, CFG_DEFAULT_COLOR2, CFG_DEFAULT_COLOR3,
+                CFG_DEFAULT_COLOR4, CFG_DEFAULT_COLOR5, CFG_DEFAULT_COLOR6, CFG_DEFAULT_COLOR7};
+            CFG_applyPalette("", defaults);
+        },
         DeferToSubmenu, paletteSubmenu};
 }

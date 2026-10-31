@@ -70,26 +70,9 @@ struct Context
 // This is all the MinUiSettings stuff, for now just copied over from the old settings app
 
 static const std::vector<std::any> colors = {
-    0x000022U, 0x000044U, 0x000066U, 0x000088U, 0x0000AAU, 0x0000CCU, 0x1e2329U, 0x3366FFU, 0x4D7AFFU, 0x6699FFU, 0x80B3FFU, 0x99CCFFU, 0xB3D9FFU,
-    0x002222U, 0x004444U, 0x006666U, 0x008888U, 0x00AAAAU, 0x00CCCCU, 0x33FFFFU, 0x4DFFFFU, 0x66FFFFU, 0x80FFFFU, 0x99FFFFU, 0xB3FFFFU,
-    0x002200U, 0x004400U, 0x006600U, 0x008800U, 0x00AA00U, 0x00CC00U, 0x33FF33U, 0x4DFF4DU, 0x66FF66U, 0x80FF80U, 0x99FF99U, 0xB3FFB3U,
-    0x220022U, 0x440044U, 0x660066U, 0x880088U, 0x9B2257U, 0xAA00AAU, 0xCC00CCU, 0xFF33FFU, 0xFF4DFFU, 0xFF66FFU, 0xFF80FFU, 0xFF99FFU, 0xFFB3FFU,
-    0x110022U, 0x220044U, 0x330066U, 0x440088U, 0x5500AAU, 0x6600CCU, 0x8833FFU, 0x994DFFU, 0xAA66FFU, 0xBB80FFU, 0xCC99FFU, 0xDDB3FFU,
-    0x220000U, 0x440000U, 0x660000U, 0x880000U, 0xAA0000U, 0xCC0000U, 0xFF3333U, 0xFF4D4DU, 0xFF6666U, 0xFF8080U, 0xFF9999U, 0xFFB3B3U,
-    0x222200U, 0x444400U, 0x666600U, 0x888800U, 0xAAAA00U, 0xCCCC00U, 0xFFFF33U, 0xFFFF4DU, 0xFFFF66U, 0xFFFF80U, 0xFFFF99U, 0xFFFFB3U,
-    0x221100U, 0x442200U, 0x663300U, 0x884400U, 0xAA5500U, 0xCC6600U, 0xFF8833U, 0xFF994DU, 0xFFAA66U, 0xFFBB80U, 0xFFCC99U, 0xFFDDB3U,
-    0x000000U, 0x141414U, 0x282828U, 0x3C3C3CU, 0x505050U, 0x646464U, 0x8C8C8CU, 0xA0A0A0U, 0xB4B4B4U, 0xC8C8C8U, 0xDCDCDCU, 0xFFFFFFU};
-// all colors above but as strings
+    0x8BD3C7U, 0xD8B487U, 0xB9A7E6U, 0x8BBED3U, 0xA8C7A2U, 0xD49A9AU, 0xE4EBEFU, 0xA7B6C0U, 0x6F8794U, 0x3E535EU, 0x24313AU, 0x12191FU, 0x070A0DU, 0xD4B483U, 0x332A23U, 0x1B1714U, 0xB4AAC5U, 0x2D273DU, 0x191622U, 0xA3B8C4U, 0x22333EU, 0x111A20U, 0x000000U, 0xFFFFFFU};
 static const std::vector<std::string> color_strings = {
-    "0x000022", "0x000044", "0x000066", "0x000088", "0x0000AA", "0x0000CC", "0x1E2329", "0x3366FF", "0x4D7AFF", "0x6699FF", "0x80B3FF", "0x99CCFF", "0xB3D9FF",
-    "0x002222", "0x004444", "0x006666", "0x008888", "0x00AAAA", "0x00CCCC", "0x33FFFF", "0x4DFFFF", "0x66FFFF", "0x80FFFF", "0x99FFFF", "0xB3FFFF",
-    "0x002200", "0x004400", "0x006600", "0x008800", "0x00AA00", "0x00CC00", "0x33FF33", "0x4DFF4D", "0x66FF66", "0x80FF80", "0x99FF99", "0xB3FFB3",
-    "0x220022", "0x440044", "0x660066", "0x880088", "0x9B2257", "0xAA00AA", "0xCC00CC", "0xFF33FF", "0xFF4DFF", "0xFF66FF", "0xFF80FF", "0xFF99FF", "0xFFB3FF",
-    "0x110022", "0x220044", "0x330066", "0x440088", "0x5500AA", "0x6600CC", "0x8833FF", "0x994DFF", "0xAA66FF", "0xBB80FF", "0xCC99FF", "0xDDB3FF",
-    "0x220000", "0x440000", "0x660000", "0x880000", "0xAA0000", "0xCC0000", "0xFF3333", "0xFF4D4D", "0xFF6666", "0xFF8080", "0xFF9999", "0xFFB3B3",
-    "0x222200", "0x444400", "0x666600", "0x888800", "0xAAAA00", "0xCCCC00", "0xFFFF33", "0xFFFF4D", "0xFFFF66", "0xFFFF80", "0xFFFF99", "0xFFFFB3",
-    "0x221100", "0x442200", "0x663300", "0x884400", "0xAA5500", "0xCC6600", "0xFF8833", "0xFF994D", "0xFFAA66", "0xFFBB80", "0xFFCC99", "0xFFDDB3",
-    "0x000000", "0x141414", "0x282828", "0x3C3C3C", "0x505050", "0x646464", "0x8C8C8C", "0xA0A0A0", "0xB4B4B4", "0xC8C8C8", "0xDCDCDC", "0xFFFFFF"};
+    "0x8BD3C7", "0xD8B487", "0xB9A7E6", "0x8BBED3", "0xA8C7A2", "0xD49A9A", "0xE4EBEF", "0xA7B6C0", "0x6F8794", "0x3E535E", "0x24313A", "0x12191F", "0x070A0D", "0xD4B483", "0x332A23", "0x1B1714", "0xB4AAC5", "0x2D273D", "0x191622", "0xA3B8C4", "0x22333E", "0x111A20", "0x000000", "0xFFFFFF"};
 
 struct FontEntry {
     std::string filename;
@@ -207,13 +190,13 @@ static const std::vector<std::string> ra_sort_labels = {
 namespace {
     struct ColorDef { int id; const char *name; const char *desc; uint32_t defaultColor; };
     static const ColorDef g_colorDefs[] = {
-        {1, "Main Color",             "The color used to render main UI elements.",                          CFG_DEFAULT_COLOR1},
-        {2, "Primary Accent Color",   "The color used to highlight important things in the user interface.", CFG_DEFAULT_COLOR2},
-        {3, "Secondary Accent Color", "A secondary highlight color.",                                        CFG_DEFAULT_COLOR3},
-        {4, "List Text",              "List text color",                                                     CFG_DEFAULT_COLOR4},
-        {5, "List Text Selected",     "List selected text color",                                            CFG_DEFAULT_COLOR5},
-        {6, "Hint info Color",        "Color for button hints and info",                                     CFG_DEFAULT_COLOR6},
-        {7, "Background Color",       "Background color used when no background image is set.",              CFG_DEFAULT_COLOR7},
+        {1, "Selection accent", "Fill for the current selection. Text contrast is automatic.", CFG_DEFAULT_COLOR1},
+        {2, "Header surface",   "Dark surface for titles, hints and notifications.",           CFG_DEFAULT_COLOR2},
+        {3, "Raised surface",   "Dark surface for cards and unselected controls.",             CFG_DEFAULT_COLOR3},
+        {4, "Primary text",     "Main list and settings text.",                                CFG_DEFAULT_COLOR4},
+        {5, "Selection text",   "Derived automatically from the selection accent.",            CFG_DEFAULT_COLOR5},
+        {6, "Secondary text",   "Hints and supporting information.",                           CFG_DEFAULT_COLOR6},
+        {7, "Backdrop",         "The dark background behind the interface.",                   CFG_DEFAULT_COLOR7},
     };
 
     static std::vector<ColorPreset> buildColorPresets(int excludeId)
@@ -221,7 +204,7 @@ namespace {
         std::vector<ColorPreset> result;
         for (const auto &def : g_colorDefs)
         {
-            if (def.id != excludeId)
+            if (def.id != excludeId && def.id != 5)
                 result.push_back({CFG_getColor(def.id), def.name});
         }
         return result;
@@ -471,9 +454,11 @@ int main(int argc, char *argv[])
         // Pre-create one RGBA picker per color setting (reused across opens)
         std::vector<std::unique_ptr<ColorPickerMenu>> pickers;
         pickers.reserve(std::size(g_colorDefs));
-        for (const auto &def : g_colorDefs)
+        for (const auto &def : g_colorDefs) {
+            if (def.id == 5) continue;
             pickers.push_back(std::make_unique<ColorPickerMenu>(
                 CFG_getColor(def.id), makeColorSetter(def.id), buildColorPresets(def.id), def.name));
+        }
 
         // Build color MenuItems (loop order = g_colorDefs order = display order)
         std::vector<AbstractMenuItem *> colorMenuItems;
@@ -481,7 +466,8 @@ int main(int argc, char *argv[])
         for (int i = 0; i < (int)std::size(g_colorDefs); i++)
         {
             const auto &def = g_colorDefs[i];
-            ColorPickerMenu *picker = pickers[i].get();
+            if (def.id == 5) continue;
+            ColorPickerMenu *picker = pickers.back().get();
             colorMenuItems.push_back(new MenuItem{
                 ListItemType::Color, def.name, def.desc, colors, color_strings,
                 makeColorGetter(def.id),
@@ -507,7 +493,7 @@ int main(int argc, char *argv[])
             [](const std::any &value) { CFG_setFontStyle(std::any_cast<int>(value)); },
             []() { CFG_setFontStyle(CFG_DEFAULT_FONT_STYLE); }});
         static const std::vector<std::any> font_size_values = {0, 1, 2, 3};
-        static const std::vector<std::string> font_size_labels = {"Small (Compact)", "Medium (Sleek)", "Large (Original)", "Extra Large"};
+        static const std::vector<std::string> font_size_labels = {"Compact", "Comfortable", "Large", "Extra Large"};
         appearanceItems.push_back(new MenuItem{ListItemType::Generic, "Font size", "The size to render the UI and gamelist font", font_size_values, font_size_labels,
             []() -> std::any { return CFG_getFontSize(); },
             [](const std::any &value) { CFG_setFontSize(std::any_cast<int>(value)); },
@@ -544,7 +530,7 @@ int main(int argc, char *argv[])
             []() -> std::any { return CFG_getShowRecents(); },
             [](const std::any &value) { CFG_setShowRecents(std::any_cast<bool>(value)); },
             []() { CFG_setShowRecents(CFG_DEFAULT_SHOWRECENTS);}});
-        appearanceItems.push_back(new MenuItem{ListItemType::Generic, "Show Tools", "Show \"Tools\" menu entry in game list.\nSettings is also directly accessible anytime via START or MENU.", {false, true}, on_off,
+        appearanceItems.push_back(new MenuItem{ListItemType::Generic, "Show Tools", "Show \"Tools\" menu entry in game list.\nMENU opens Settings; START opens the Quick Menu.", {false, true}, on_off,
             []() -> std::any { return CFG_getShowTools(); },
             [](const std::any &value) { CFG_setShowTools(std::any_cast<bool>(value)); },
             []() { CFG_setShowTools(CFG_DEFAULT_SHOWTOOLS);}});
@@ -1135,7 +1121,7 @@ int main(int argc, char *argv[])
 
         auto aboutMenu = new MenuList(MenuItemType::Fixed, "About",
         {
-            new StaticMenuItem{ListItemType::Generic, "NextUI version", "",
+            new StaticMenuItem{ListItemType::Generic, "Build version", "",
             []() -> std::any {
                 std::ifstream t(ROOT_SYSTEM_PATH "/version.txt");
                 std::stringstream buffer;
@@ -1172,7 +1158,7 @@ int main(int argc, char *argv[])
         if(buttonMenu)
             mainItems.push_back(new MenuItem{ListItemType::Generic, "Assignments", "Customize button assignments", {}, {}, nullptr, nullptr, DeferToSubmenu, buttonMenu});
 
-        mainItems.push_back(new MenuItem{ListItemType::Generic, "In-Game", "In-game settings for MinArch", {}, {}, nullptr, nullptr, DeferToSubmenu, minarchMenu});
+        mainItems.push_back(new MenuItem{ListItemType::Generic, "In-Game", "MinArch save-state notifications and achievements", {}, {}, nullptr, nullptr, DeferToSubmenu, minarchMenu});
 
         if(deviceInfo.hasWifi())
             mainItems.push_back(new MenuItem{ListItemType::Generic, "Network", "", {}, {}, nullptr, nullptr, DeferToSubmenu, new Wifi::Menu(appQuit, ctx.dirty)});
@@ -1182,16 +1168,11 @@ int main(int argc, char *argv[])
 
         mainItems.push_back(new MenuItem{ListItemType::Generic, "About", "", {}, {}, nullptr, nullptr, DeferToSubmenu, aboutMenu});
 
-        ctx.menu = new MenuList(MenuItemType::List, "Main", mainItems);
+        ctx.menu = new MenuList(MenuItemType::List, "Nocturne", mainItems);
 
-        SDL_Surface* bgbmp = IMG_Load(SDCARD_PATH "/bg.png");
-        SDL_Surface* convertedbg = SDL_ConvertSurfaceFormat(bgbmp, SDL_PIXELFORMAT_RGB565, 0);
-        if (convertedbg) {
-            SDL_FreeSurface(bgbmp);
-            SDL_Surface* scaled = SDL_CreateRGBSurfaceWithFormat(0, ctx.screen->w, ctx.screen->h, 32, SDL_PIXELFORMAT_RGB565);
-            GFX_blitScaleToFill(convertedbg, scaled);
-            bgbmp = scaled;
-        }
+        // Settings intentionally use a solid semantic backdrop. Arbitrary light
+        // wallpaper must not turn the settings app into a light theme.
+        SDL_Surface* bgbmp = NULL;
 
         // main content (list)
         // PADDING all around
@@ -1210,7 +1191,18 @@ int main(int argc, char *argv[])
             GFX_startFrame();
             PAD_poll();
 
-            ctx.menu->handleInput(ctx.dirty, appQuit);
+            if (!ctx.show_setting && BTN_MOD_SWITCHER != BTN_NONE &&
+                PAD_isPressed(BTN_MENU) && PAD_justPressed(BTN_MOD_SWITCHER) &&
+                !PAD_isPressed(BTN_PLUS) && !PAD_isPressed(BTN_MINUS)) {
+                PAD_cancelTap(BTN_MENU);
+                char persist_path[] = GAME_SWITCHER_PERSIST_PATH;
+                char persist_value[] = "unused";
+                putFile(persist_path, persist_value);
+                appQuit = true;
+                ctx.dirty = 1;
+            } else {
+                ctx.menu->handleInput(ctx.dirty, appQuit);
+            }
 
             PWR_update(&ctx.dirty, &ctx.show_setting, nullptr, nullptr);
 
@@ -1252,7 +1244,7 @@ int main(int argc, char *argv[])
                     max_width = MIN(max_width, text_width);
 
                     SDL_Surface *text;
-                    text = TTF_RenderUTF8_Blended(font.large, display_name, COLOR_WHITE);
+                    text = TTF_RenderUTF8_Blended(font.large, display_name, uintToColour(THEME_COLOR6_255));
                     SDL_Rect target = {SCALE1(PADDING), SCALE1(PADDING), max_width, SCALE1(PILL_SIZE)};
                     GFX_blitPillLight(ASSET_WHITE_PILL, ctx.screen, &target);
                     SDL_BlitSurfaceCPP(text, {0, 0, max_width - SCALE1(BUTTON_PADDING * 2), text->h}, ctx.screen, {SCALE1(PADDING + BUTTON_PADDING), SCALE1(PADDING + 4)});

@@ -115,6 +115,7 @@
 #define BTN_WAKE 			BTN_POWER
 #define BTN_MOD_VOLUME 		BTN_NONE
 #define BTN_MOD_COLORTEMP	BTN_NONE
+#define BTN_MOD_SWITCHER	BTN_R1
 #define BTN_MOD_BRIGHTNESS 	BTN_MENU
 #define BTN_MOD_PLUS 		BTN_PLUS
 #define BTN_MOD_MINUS 		BTN_MINUS
@@ -128,13 +129,14 @@
 //#define MAIN_ROW_COUNT 6
 //#define PADDING 10
 
-// emulate Brick
-#define FIXED_SCALE 	3
-#define FIXED_WIDTH		1024
-#define FIXED_HEIGHT	768
-#define MAIN_ROW_COUNT 7
+// Match the RG40XX H logical panel by default so desktop checks exercise
+// the same 640x480 layout, row count and scale as the target handheld.
+#define FIXED_SCALE 2
+#define FIXED_WIDTH 640
+#define FIXED_HEIGHT 480
+#define MAIN_ROW_COUNT 6
 #define QUICK_SWITCHER_COUNT 3
-#define PADDING 5
+#define PADDING 10
 
 // emulate TSP
 //#define FIXED_SCALE 	2

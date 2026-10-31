@@ -30,6 +30,7 @@ int main(int argc , char* argv[]) {
 	// TODO: make use of SCALE1()
 	SDL_Surface* digits =  SDL_CreateRGBSurfaceWithFormat(SDL_SWSURFACE, SCALE1(120), SCALE1(16), 32, screen->format->format);
 	SDL_FillRect(digits, NULL, RGB_BLACK);
+	SDL_SetColorKey(digits, SDL_TRUE, RGB_BLACK);
 	
 	SDL_Surface* digit;
 	char* chars[] = { "0","1","2","3","4","5","6","7","8","9","/",":", NULL };
@@ -41,7 +42,7 @@ int main(int argc , char* argv[]) {
 #define CHAR_SLASH 10
 #define CHAR_COLON 11
 	while (c = chars[i]) {
-		digit = TTF_RenderUTF8_Blended(font.large, c, COLOR_WHITE);
+		digit = TTF_RenderUTF8_Blended(font.large, c, uintToColour(THEME_COLOR4_255));
 		int y = i==CHAR_COLON ? SCALE1(-1.5) : 0; // : sits too low naturally
 		// TODO: y offset is wrong here
 		// printf("%s x:%i y:%i SCALE1(DIGIT_HEIGHT):%i SCALE1(DIGIT_HEIGHT) - digit->h:%i\n", c, (i * SCALE1(DIGIT_WIDTH)), y, SCALE1(DIGIT_HEIGHT), SCALE1(DIGIT_HEIGHT) - digit->h); fflush(stdout);
@@ -73,7 +74,7 @@ int main(int argc , char* argv[]) {
 		return x + SCALE1(10);
 	}
 	void blitBar(int x, int y, int w) {
-		GFX_blitPill(ASSET_UNDERLINE, screen, &(SDL_Rect){x,y,w});
+		GFX_blitPillColor(ASSET_UNDERLINE, screen, &(SDL_Rect){x,y,w}, THEME_COLOR1, RGB_WHITE);
 	}
 	int blitNumber(int num, int x, int y) {
 		int n;
@@ -294,7 +295,7 @@ int main(int argc , char* argv[]) {
 			int ampm_w;
 			if (!show_24hour) {
 				x += SCALE1(10); // space
-				SDL_Surface* text = TTF_RenderUTF8_Blended(font.large, am_selected ? "AM" : "PM", COLOR_WHITE);
+				SDL_Surface* text = TTF_RenderUTF8_Blended(font.large, am_selected ? "AM" : "PM", uintToColour(THEME_COLOR4_255));
 				ampm_w = text->w + SCALE1(2);
 				SDL_BlitSurface(text, NULL, screen, &(SDL_Rect){x,y-SCALE1(3)});
 				SDL_FreeSurface(text);

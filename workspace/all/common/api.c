@@ -374,55 +374,29 @@ int GFX_loadSystemFont(const char *fontPath)
 	TTF_CloseFont(font.tiny);
 	TTF_CloseFont(font.micro);
 
-	int size_large = FONT_LARGE;
-	int size_medium = FONT_MEDIUM;
-	int size_small = FONT_SMALL;
-	int size_tiny = FONT_TINY;
-	int size_micro = FONT_MICRO;
-
-	switch (CFG_getFontSize()) {
-		case 0: // Small (Compact)
-			size_large = 12;
-			size_medium = 11;
-			size_small = 10;
-			size_tiny = 8;
-			size_micro = 7;
-			break;
-		case 1: // Medium (Sleek)
-			size_large = 14;
-			size_medium = 12;
-			size_small = 11;
-			size_tiny = 9;
-			size_micro = 7;
-			break;
-		case 2: // Large (Original)
-			size_large = 16;
-			size_medium = 14;
-			size_small = 12;
-			size_tiny = 10;
-			size_micro = 7;
-			break;
-		case 3: // Extra Large
-			size_large = 18;
-			size_medium = 15;
-			size_small = 13;
-			size_tiny = 11;
-			size_micro = 8;
-			break;
-		default:
-			size_large = 14;
-			size_medium = 12;
-			size_small = 11;
-			size_tiny = 9;
-			size_micro = 7;
-			break;
+	// Existing numeric settings are preserved; the default is now comfortable
+	// rather than synthetic-bold/compact. Micro text is never smaller than 8.
+	static const int sizes[4][5] = {
+		{14, 12, 11,  9, 7},
+		{16, 14, 12, 10, 8},
+		{18, 15, 13, 11, 8},
+		{20, 16, 14, 12, 9},
+	};
+	int size = CFG_getFontSize();
+	if (size < 0 || size > 3) size = CFG_DEFAULT_FONT_SIZE;
+	const int *points = sizes[size];
+	const char *paths[] = {fontPath, RES_PATH "/font1.ttf", RES_PATH "/font2.ttf"};
+	TTF_Font **fonts[] = {&font.large, &font.medium, &font.small, &font.tiny, &font.micro};
+	for (int i = 0; i < 5; i++) {
+		for (int attempt = 0; attempt < 3; attempt++) {
+			*fonts[i] = TTF_OpenFont(paths[attempt], SCALE1(points[i]));
+			if (*fonts[i]) break;
+		}
+		if (!*fonts[i]) {
+			LOG_error("Unable to load UI font: %s\n", paths[0]);
+			return -1;
+		}
 	}
-
-	font.large = TTF_OpenFont(fontPath, SCALE1(size_large));
-	font.medium = TTF_OpenFont(fontPath, SCALE1(size_medium));
-	font.small = TTF_OpenFont(fontPath, SCALE1(size_small));
-	font.tiny = TTF_OpenFont(fontPath, SCALE1(size_tiny));
-	font.micro = TTF_OpenFont(fontPath, SCALE1(size_micro));
 
 	TTF_SetFontStyle(font.large, CFG_getFontStyle());
 	TTF_SetFontStyle(font.medium, CFG_getFontStyle());
@@ -444,7 +418,7 @@ int GFX_updateColors(void)
 	THEME_COLOR5 = mapUint(CFG_getColor(COLOR_LIST_TEXT_SELECTED));
 	THEME_COLOR6 = mapUint(CFG_getColor(COLOR_HINT));
 	THEME_COLOR7 = mapUint(CFG_getColor(COLOR_BACKGROUND));
-	ALT_BUTTON_TEXT_COLOR = uintToColour(CFG_getColor(COLOR_ACCENT2));
+	ALT_BUTTON_TEXT_COLOR = uintToColour(CFG_getColor(COLOR_LIST_TEXT_SELECTED));
 
 	return 0;
 }
@@ -2171,7 +2145,7 @@ void GFX_blitButton(char *hint, char *button, SDL_Surface *dst, SDL_Rect *dst_re
 		// special case: if CFG_getInputPromptStyle() is anything but INPUT_STYLE_TEXT, we want to blit the prompt asset
 		if (input_asset >= 0)
 		{
-			GFX_blitInputAssetColor(input_asset, NULL, dst, dst_rect, THEME_COLOR3);
+			GFX_blitInputAssetColor(input_asset, NULL, dst, dst_rect, THEME_COLOR5);
 			ox += SCALE1(BUTTON_SIZE);
 		}
 		else {
@@ -2188,7 +2162,7 @@ void GFX_blitButton(char *hint, char *button, SDL_Surface *dst, SDL_Rect *dst_re
 		if (input_asset >= 0)
 		{
 			GFX_blitAssetColor(ASSET_BUTTON, NULL, dst, dst_rect, THEME_COLOR1);
-			GFX_blitInputAssetColor(input_asset, NULL, dst, dst_rect, THEME_COLOR3);
+			GFX_blitInputAssetColor(input_asset, NULL, dst, dst_rect, THEME_COLOR5);
 			ox += SCALE1(BUTTON_SIZE);
 		}
 		else {
@@ -3950,26 +3924,37 @@ int PAD_isPressed(int btn) { return pad.is_pressed & btn; }
 int PAD_justReleased(int btn) { return pad.just_released & btn; }
 int PAD_justRepeated(int btn) { return pad.just_repeated & btn; }
 
+static uint32_t tap_start[BTN_ID_COUNT] = {0};
+static int tap_ignored[BTN_ID_COUNT] = {0};
+
+static int PAD_buttonIndex(int btn)
+{
+	for (int id = 0; id < BTN_ID_COUNT; id++)
+		if ((1 << id) == btn) return id;
+	return -1;
+}
+
+void PAD_cancelTap(int btn)
+{
+	int id = PAD_buttonIndex(btn);
+	if (id >= 0) tap_ignored[id] = 1;
+}
+
 int PAD_tappedBtn(int btn, uint32_t now)
 {
-#define MENU_DELAY 450 // increased from 250ms to 450ms for reliable recognition
-	static uint32_t btn_start[BTN_ID_COUNT] = {0};
-	static int ignore_btn[BTN_ID_COUNT] = {0};
+#define MENU_DELAY 450
+	int id = PAD_buttonIndex(btn);
+	if (id < 0) return 0;
 
-	int id = 0;
-	while (id < BTN_ID_COUNT && (1 << id) != btn) id++;
-	if (id >= BTN_ID_COUNT) id = 0;
-
-	if (PAD_justPressed(btn))
-	{
-		ignore_btn[id] = 0;
-		btn_start[id] = now;
+	if (PAD_justPressed(btn)) {
+		tap_ignored[id] = 0;
+		tap_start[id] = now;
 	}
-	else if (PAD_isPressed(btn) && (btn == BTN_MOD_BRIGHTNESS || btn == BTN_MOD_VOLUME || btn == BTN_MOD_COLORTEMP) && (PAD_justPressed(BTN_MOD_PLUS) || PAD_justPressed(BTN_MOD_MINUS)))
-	{
-		ignore_btn[id] = 1;
+	if (PAD_isPressed(btn) && (PAD_justPressed(BTN_PLUS) || PAD_justPressed(BTN_MINUS) ||
+		(BTN_MOD_SWITCHER != BTN_NONE && PAD_justPressed(BTN_MOD_SWITCHER)))) {
+		tap_ignored[id] = 1;
 	}
-	return (!ignore_btn[id] && PAD_justReleased(btn) && now - btn_start[id] < MENU_DELAY);
+	return (!tap_ignored[id] && PAD_justReleased(btn) && now - tap_start[id] < MENU_DELAY);
 }
 
 int PAD_tappedMenu(uint32_t now)
@@ -4264,7 +4249,7 @@ void PWR_update(int *_dirty, int *_show_setting, PWR_callback_t before_sleep, PW
 	// TODO: only delay hiding setting changes if that setting didn't require a modifier button be held, otherwise release as soon as modifier is released
 
 	int delay_settings = BTN_MOD_BRIGHTNESS == BTN_MENU; // when both volume and brighness require a modifier hide settings as soon as it is released
-#define SETTING_DELAY 1200
+#define SETTING_DELAY 600
 	if (show_setting && (now - setting_shown_at >= SETTING_DELAY || !delay_settings) && !PAD_isPressed(BTN_MOD_VOLUME) && !PAD_isPressed(BTN_MOD_BRIGHTNESS) && !PAD_isPressed(BTN_MOD_COLORTEMP))
 	{
 		show_setting = 0;

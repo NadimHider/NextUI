@@ -1,0 +1,9 @@
+version=1
+name=Iris
+color1=0xB9A7E6FF
+color2=0x191622FF
+color3=0x2D273DFF
+color4=0xECE7F4FF
+color5=0x130E1CFF
+color6=0xB4AAC5FF
+color7=0x0B0910FF

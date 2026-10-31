@@ -36,9 +36,10 @@ RELEASE_NAME ?= $(RELEASE_BASE)-$(RELEASE_DOT)
 
 # Extra paks to ship
 VENDOR_DEST := ./build/VENDOR/Tools
+# Nocturne intentionally omits the upstream auto-updater pak: a personal
+# frontend should not silently replace itself with an upstream release.
 PACKAGE_URL_MAPPINGS := \
-	"https://github.com/UncleJunVIP/nextui-pak-store/releases/latest/download/Pak.Store.pakz nextui.pak_store.pakz" \
-	"https://github.com/LoveRetro/nextui-updater-pak/releases/latest/download/nextui.updater.pakz nextui.updater.pakz"
+	"https://github.com/UncleJunVIP/nextui-pak-store/releases/latest/download/Pak.Store.pakz nextui.pak_store.pakz"
 	# add more URLs as needed
 
 ###########################################################
@@ -66,6 +67,10 @@ build:
 build-cores:
 	make build-cores -f $(TOOLCHAIN_FILE) PLATFORM=$(PLATFORM) COMPILE_CORES=true
 	# ----------------------------------------------------
+
+# Host-side checks for Nocturne's pure theme/navigation/cache policies.
+test-nocturne:
+	bash tests/nocturne/run.sh
 
 cores-json:
 	@cat workspace/$(PLATFORM)/cores/makefile | grep ^CORES | cut -d' ' -f2 | jq  --raw-input .  | jq --slurp -cM .

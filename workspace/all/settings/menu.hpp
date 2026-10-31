@@ -53,6 +53,11 @@ inline void GFX_blitPillLightCPP(int asset, SDL_Surface *dst, const SDL_Rect &ds
     GFX_blitPillLight(asset, dst, rectOrNull(dst_rect));
 }
 
+inline void GFX_blitPillColorCPP(int asset, SDL_Surface *dst, const SDL_Rect &dst_rect, uint32_t color, uint32_t fill)
+{
+    GFX_blitPillColor(asset, dst, rectOrNull(dst_rect), color, fill);
+}
+
 inline void GFX_blitMessageCPP(TTF_Font *font, const std::string &msg, SDL_Surface *dst, const SDL_Rect &dst_rect)
 {
     GFX_blitMessage(font, const_cast<char *>(msg.c_str()), dst, rectOrNull(dst_rect));

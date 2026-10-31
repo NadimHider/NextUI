@@ -214,7 +214,7 @@ void renderList(int count, int start, int end, int selected)
             layout.list_display_start_y + row * elemHeight, 
             layout.list_display_size_x, 
             elemHeight
-        }, isSelected ? RGB_WHITE : RGB_BLACK, SCALE1(24));
+        }, isSelected ? THEME_COLOR1 : THEME_COLOR3, SCALE1(24));
 
         SDL_Surface *romImage = romImages[index];
         if (romImage) {
@@ -234,7 +234,7 @@ void renderList(int count, int start, int end, int selected)
                 SCALE1(IMG_MAX_HEIGHT)
             };
 
-            renderRoundedRectangle(rectRomImage, RGB_DARK_GRAY, SCALE1(18));
+            renderRoundedRectangle(rectRomImage, THEME_COLOR2, SCALE1(18));
 
             // TODO: no getter exposed for this right now
             //SDL_Rect rect = asset_rects[ASSET_GAMEPAD];
@@ -248,10 +248,10 @@ void renderList(int count, int start, int end, int selected)
         }
 
         cleanName(rom_name, rom->name);
-        SDL_Color textColor = COLOR_WHITE;
+        SDL_Color textColor = uintToColour(THEME_COLOR4_255);
         if(isSelected) {
             //textColor = uintToColour(THEME_COLOR1);
-            textColor = COLOR_BLACK;
+            textColor = uintToColour(THEME_COLOR5_255);
         }
         renderText(rom_name, font.medium, textColor, &(SDL_Rect){
             layout.list_display_start_x + num_width + thumbMargin + SCALE1(IMG_MAX_WIDTH), 
@@ -271,7 +271,7 @@ void renderList(int count, int start, int end, int selected)
             textHeight
         };
         for (int i = 0; i < 6; i++) {
-            SDL_Color detailCol = i % 2 == 0 ? COLOR_DARK_TEXT : uintToColour(THEME_COLOR2_255);
+            SDL_Color detailCol = i % 2 == 0 ? uintToColour(THEME_COLOR6_255) : uintToColour(THEME_COLOR1_255);
             //SDL_Color detailCol = uintToColour(i % 2 == 0 ? THEME_COLOR3_255 : THEME_COLOR2_255);
             //SDL_Color detailCol = i % 2 == 0 ? COLOR_DARK_TEXT : COLOR_LIGHT_TEXT;
             detailsRect.x += renderText(details[i], font.small, detailCol, &detailsRect);
@@ -414,8 +414,8 @@ int main(int argc, char *argv[])
                 max_width = MIN(max_width, text_width);
 
                 SDL_Surface *text;
-                text = TTF_RenderUTF8_Blended(font.large, title, COLOR_WHITE);
-                GFX_blitPill(ASSET_BLACK_PILL, screen, &(SDL_Rect){SCALE1(PADDING), SCALE1(PADDING), max_width, SCALE1(PILL_SIZE)});
+                text = TTF_RenderUTF8_Blended(font.large, title, uintToColour(THEME_COLOR4_255));
+                GFX_blitPillLight(ASSET_WHITE_PILL, screen, &(SDL_Rect){SCALE1(PADDING), SCALE1(PADDING), max_width, SCALE1(PILL_SIZE)});
                 SDL_BlitSurface(text, &(SDL_Rect){0, 0, max_width - SCALE1(BUTTON_PADDING * 2), text->h}, screen, &(SDL_Rect){SCALE1(PADDING + BUTTON_PADDING), SCALE1(PADDING + 4)});
                 SDL_FreeSurface(text);
             }
