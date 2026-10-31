@@ -46,3 +46,9 @@ jobs:
         with:
           name: h700-update
           path: h700-update.zip
+
+      - name: Upload H700 Boot Payload
+        uses: actions/upload-artifact@v4
+        with:
+          name: h700-boot
+          path: workspace/h700/boot/output/dmenu.bin

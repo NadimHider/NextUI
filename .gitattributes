@@ -1,0 +1,11 @@
+# Shell scripts and sources are consumed by Linux builds and by the H700 boot
+# shim, so keep them LF even on Windows checkouts.
+*.sh text eol=lf
+*.c text eol=lf
+*.h text eol=lf
+*.cpp text eol=lf
+*.py text eol=lf
+*.yaml text eol=lf
+makefile text eol=lf
+Makefile text eol=lf
+makefile.* text eol=lf

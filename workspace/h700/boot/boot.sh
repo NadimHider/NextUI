@@ -89,9 +89,11 @@ fallback_stock() {
 }
 
 if ! load_common; then
-	show_splash "NEXTUI INSTALL MISSING"
+	show_splash "NOCTURNE INSTALL MISSING"
 	fallback_stock
 fi
+
+show_splash "STARTING NOCTURNE"
 
 if [ -f /mnt/vendor/muos1.ini ] || [ -f /mnt/vendor/muos2.ini ]; then
 	shim_log "stockmod muOS override is present; NextUI requires the stock boot target"
@@ -104,7 +106,7 @@ fi
 
 if ! mount_tf2 "$TF2_PATH"; then
 	shim_log "TF2 mount failed"
-	show_splash "INSERT NEXTUI TF2 CARD"
+	show_splash "INSERT NOCTURNE TF2 CARD"
 	fallback_stock
 fi
 
@@ -112,7 +114,7 @@ ensure_compat_path "$TF2_PATH" "$COMPAT_PATH"
 
 if [ -f "$UPDATE_PATH" ]; then
 	shim_log "install/update zip detected"
-	show_splash "INSTALLING NEXTUI"
+	show_splash "INSTALLING NOCTURNE"
 	if [ ! -x "$TF2_PATH/.tmp_update/$PLATFORM.sh" ]; then
 		UNZIP_CMD=$(find_unzip)
 		if [ -z "$UNZIP_CMD" ]; then
@@ -127,10 +129,10 @@ if [ -f "$UPDATE_PATH" ]; then
 fi
 
 if [ -x "$TF2_PATH/.tmp_update/$PLATFORM.sh" ] && { [ -f "$UPDATE_PATH" ] || has_pakz; }; then
-	show_splash "INSTALLING NEXTUI"
+	show_splash "INSTALLING NOCTURNE"
 	"$TF2_PATH/.tmp_update/$PLATFORM.sh" >> "$LOG_PATH" 2>&1
 elif [ -x "$SYSTEM_PATH/bin/install.sh" ] && [ -f "$UPDATE_PATH" ]; then
-	show_splash "UPDATING NEXTUI"
+	show_splash "UPDATING NOCTURNE"
 	"$SYSTEM_PATH/bin/install.sh" >> "$LOG_PATH" 2>&1
 fi
 
@@ -139,5 +141,5 @@ if [ -x "$SYSTEM_PATH/paks/MinUI.pak/launch.sh" ]; then
 fi
 
 shim_log "NextUI launch script missing"
-show_splash "NEXTUI INSTALL MISSING"
+show_splash "NOCTURNE INSTALL MISSING"
 fallback_stock
