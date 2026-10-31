@@ -847,10 +847,6 @@ static Array* getQuickToggles(void) {
 	if (settings)
 		Array_push(entries, settings);
 
-	Entry *store = entryFromPakName("Pak Store");
-	if (store)
-		Array_push(entries, store);
-
 	// quick actions
 	if(WIFI_supported())
 		Array_push(entries, Entry_new("Wifi", ENTRY_DIP));
@@ -2871,8 +2867,6 @@ int main (int argc, char *argv[]) {
 							asset = ASSET_POWEROFF;
 						else if (!strcmp(item->name,"Settings"))
 							asset = ASSET_SETTINGS;
-						else if (!strcmp(item->name,"Pak Store"))
-							asset = ASSET_STORE;
 
 						SDL_Rect rect;
 						GFX_assetRect(asset, &rect);

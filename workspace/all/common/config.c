@@ -165,11 +165,10 @@ void CFG_init(FontLoad_callback_t cb, ColorSet_callback_t ccb)
             {
                 char *value = line + 5;
                 value[strcspn(value, "\r\n")] = 0;
-                // backward compat: "0" -> font2.ttf, "1" -> font1.ttf
-                if (strcmp(value, "0") == 0)
-                    CFG_setFontFile("font2.ttf");
-                else if (strcmp(value, "1") == 0)
-                    CFG_setFontFile("font1.ttf");
+                // legacy numeric values selected the removed built-in fonts;
+                // fall back to the current default instead
+                if (strcmp(value, "0") == 0 || strcmp(value, "1") == 0)
+                    CFG_setFontFile(CFG_DEFAULT_FONT_FILE);
                 else
                     CFG_setFontFile(value);
                 fontLoaded = true;
@@ -1362,12 +1361,8 @@ void CFG_get(const char *key, char *value)
 {
     if (strcmp(key, "font") == 0)
     {
-        // backward compat: always return integer (default 1 for custom fonts)
-        const char *f = CFG_getFontFile();
-        if (strcmp(f, "font2.ttf") == 0)
-            sprintf(value, "0");
-        else
-            sprintf(value, "1");
+        // backward compat: paks expect an integer, and all fonts are now custom
+        sprintf(value, "1");
     }
     else if (strcmp(key, "palette") == 0)
     {
@@ -1648,14 +1643,7 @@ void CFG_sync(void)
         return;
     }
 
-    // backward compat: write integer for built-in fonts so existing paks
-    // that parse "font=" as an int keep working
-    if (strcmp(settings.fontFile, "font1.ttf") == 0)
-        fprintf(file, "font=1\n");
-    else if (strcmp(settings.fontFile, "font2.ttf") == 0)
-        fprintf(file, "font=0\n");
-    else
-        fprintf(file, "font=%s\n", settings.fontFile);
+    fprintf(file, "font=%s\n", settings.fontFile);
     fprintf(file, "palette=%s\n", settings.paletteName);
     fprintf(file, "color1=0x%08X\n", settings.color1_255);
     fprintf(file, "color2=0x%08X\n", settings.color2_255);
@@ -1727,11 +1715,8 @@ void CFG_sync(void)
 void CFG_print(void)
 {
     printf("{\n");
-    // backward compat: always output integer (default 1 for custom fonts)
-    if (strcmp(settings.fontFile, "font2.ttf") == 0)
-        printf("\t\"font\": 0,\n");
-    else
-        printf("\t\"font\": 1,\n");
+    // backward compat: paks expect an integer, and all fonts are now custom
+    printf("\t\"font\": 1,\n");
     printf("\t\"palette\": \"%s\",\n", settings.paletteName);
     printf("\t\"color1\": \"0x%08X\",\n", settings.color1_255);
     printf("\t\"color2\": \"0x%08X\",\n", settings.color2_255);

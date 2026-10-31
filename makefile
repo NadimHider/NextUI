@@ -34,13 +34,8 @@ RELEASE_BASE=NextUI-$(RELEASE_TIME)$(RELEASE_BETA)
 RELEASE_DOT:=$(shell find ./releases/. -regex ".*/${RELEASE_BASE}-[0-9]+-base\.zip" | wc -l | sed 's/ //g')
 RELEASE_NAME ?= $(RELEASE_BASE)-$(RELEASE_DOT)
 
-# Extra paks to ship
-VENDOR_DEST := ./build/VENDOR/Tools
-# Nocturne intentionally omits the upstream auto-updater pak: a personal
-# frontend should not silently replace itself with an upstream release.
-PACKAGE_URL_MAPPINGS := \
-	"https://github.com/UncleJunVIP/nextui-pak-store/releases/latest/download/Pak.Store.pakz nextui.pak_store.pakz"
-	# add more URLs as needed
+# Nocturne intentionally omits the upstream auto-updater and Pak Store paks:
+# a personal frontend should not silently replace itself or add a store.
 
 ###########################################################
 
@@ -262,22 +257,9 @@ package: tidy
 	cd ./build/PAYLOAD && zip -r MinUI.zip .system .tmp_update Tools
 	mv ./build/PAYLOAD/MinUI.zip ./build/BASE
 
-	# Fetch, rename, and stage vendored packages
-	mkdir -p $(VENDOR_DEST)
-	@for entry in $(PACKAGE_URL_MAPPINGS); do \
-		url=$$(echo $$entry | awk '{print $$1}'); \
-		target=$$(echo $$entry | awk '{print $$2}'); \
-		echo "Downloading $$url → $(VENDOR_DEST)/$$target"; \
-		curl -Ls -o "$(VENDOR_DEST)/$$target" "$$url"; \
-	done
-
-	# Move renamed .pakz files into base folder
-	mkdir -p ./build/BASE
-	mv $(VENDOR_DEST)/* ./build/BASE/
-	
 	# TODO: can I just add everything in BASE to zip?
 	# cd ./build/BASE && zip -r ../../releases/$(RELEASE_NAME)-base.zip Bios Roms Saves miyoo miyoo354 trimui rg35xx rg35xxplus gkdpixel miyoo355 magicx em_ui.sh MinUI.zip README.txt
-	cd ./build/BASE && zip -r ../../releases/$(RELEASE_NAME)-base.zip Bios Roms Saves Shaders Overlays trimui h700 em_ui.sh MinUI.zip *.pakz README.txt
+	cd ./build/BASE && zip -r ../../releases/$(RELEASE_NAME)-base.zip Bios Roms Saves Shaders Overlays trimui h700 em_ui.sh MinUI.zip README.txt
 	cd ./build/EXTRAS && zip -r ../../releases/$(RELEASE_NAME)-extras.zip Bios Emus Roms Saves Shaders Overlays Tools README.txt
 	echo "$(RELEASE_VERSION)" > ./build/latest.txt
 

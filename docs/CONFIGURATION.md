@@ -119,7 +119,7 @@ Departure Mono is the default font. The frontend loads fonts from `.system/res` 
 | Font style | Normal or bold |
 | Font size | Compact, Comfortable, Large, Extra Large |
 
-The four size steps map to progressively larger frontend and list text. The default is Comfortable, tuned for the 640 x 480 RG40XX H panel. `font1.ttf` and `font2.ttf` remain supported for compatibility with existing NextUI installations.
+The four size steps map to progressively larger frontend and list text. The default is Comfortable, tuned for the 640 x 480 RG40XX H panel. The font menu lists the fonts present in `.system/res`.
 
 To install a font, copy a `.ttf` or `.otf` file into `.system/res` and select it in Settings. Custom fonts are sorted, and filenames are shown without extensions or `-Regular` suffixes.
 

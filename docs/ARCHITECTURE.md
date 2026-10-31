@@ -87,7 +87,7 @@ The palette engine exposes seven semantic slots:
 
 Selection text is derived from the selection fill. Imported palettes are normalized for dark opaque surfaces and lifted text contrast, and the original palette file is not rewritten.
 
-Fonts are loaded from `.system/res` through SDL_ttf. The default is Departure Mono. Four size steps map to the frontend and list text, with a floor of 8 points for the smallest text. `font1.ttf` and `font2.ttf` remain supported for compatibility.
+Fonts are loaded from `.system/res` through SDL_ttf. The default is Departure Mono. Four size steps map to the frontend and list text, with a floor of 8 points for the smallest text. Missing fonts fall back to Departure Mono.
 
 ## Motion
 

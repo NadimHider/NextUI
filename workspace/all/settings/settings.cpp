@@ -83,22 +83,16 @@ static std::vector<FontEntry> enumerateFonts() {
     std::vector<FontEntry> fonts;
     std::vector<FontEntry> custom_fonts;
 
-    // Featured fonts at top
+    // Featured font at top
     fonts.push_back({"DepartureMono-Regular.otf", "Departure Mono"});
-    fonts.push_back({"font1.ttf", "Next"});
-    fonts.push_back({"font2.ttf", "OG"});
 
     DIR *dir = opendir(RES_PATH);
     if (dir) {
         struct dirent *ent;
         while ((ent = readdir(dir)) != NULL) {
             if (ent->d_name[0] == '.') continue;
-            // skip built-in/featured fonts already added
-            if (strcmp(ent->d_name, "font1.ttf") == 0 || strcmp(ent->d_name, "font2.ttf") == 0)
-                continue;
+            // skip the featured font already added
             if (strcmp(ent->d_name, "DepartureMono-Regular.otf") == 0)
-                continue;
-            if (strncmp(ent->d_name, "BPreplay", 8) == 0)
                 continue;
             size_t len = strlen(ent->d_name);
             if (len < 5) continue;

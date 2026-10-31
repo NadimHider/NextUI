@@ -287,8 +287,7 @@ void CFG_print(void);
 void CFG_get(const char *key, char * value);
 // void CFG_defaults(NextUISettings*);
 // The font filename to use as the UI font.
-// Built-in: "font1.ttf" (Next, default), "font2.ttf" (OG)
-// Custom fonts go in RES_PATH alongside built-in fonts.
+// The default is Departure Mono; custom fonts go in RES_PATH.
 const char* CFG_getFontFile(void);
 void CFG_setFontFile(const char* filename);
 // The font style to use for the UI font.
