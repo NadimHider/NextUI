@@ -1,20 +1,22 @@
 # Validation
 
-This page records the build, binary, card, and device checks for Nocturne v1.0.1.
+This page records the build, binary, card, and device checks for Nocturne v1.0.2.
 
 ## Build provenance
 
 | Item | Value |
 | --- | --- |
-| Release | Nocturne v1.0.1 |
-| Binary commit | `12927c60` |
-| H700 workflow | [41165558582](https://github.com/NadimHider/nocturne/actions/runs/41165558582), success |
-| Full CI | [41165558579](https://github.com/NadimHider/nocturne/actions/runs/41165558579), success |
+| Release | Nocturne v1.0.2 |
+| Binary commit | `c2a09365` |
+| H700 workflow | [41175554962](https://github.com/NadimHider/nocturne/actions/runs/41175554962), success |
+| Full CI | [41175554920](https://github.com/NadimHider/nocturne/actions/runs/41175554920), success |
 | Device | Anbernic RG40XX H |
 | Card | exFAT, label `Roms` |
 | Validation date | 2026-10-31 |
 
-The release tag includes the documentation update that follows the binary commit. The binaries in the release archive were built from `12927c60`.
+The release tag includes the documentation update that follows the binary commit. The binaries in the release archive were built from `c2a09365`.
+
+The device checks were performed with the frontend binaries built from `04577524` and the boot payload built from `71656dc7`. Commits `71656dc7` and `c2a09365` do not change frontend source. They add the Departure Mono boot splash, align installer text with the Nocturne name, and add the boot payload to CI. The release binaries were rebuilt from `c2a09365`; `minarch.elf` and `settings.elf` differ from the earlier build only because the cross-build is not byte-reproducible. The boot payload in the release is content-identical to the payload validated on the card.
 
 ## Automated checks
 
@@ -26,42 +28,43 @@ Command:
 make test-nocturne
 ```
 
-Result: pass.
+Result: pass. The policy sources are unchanged from v1.0.1, and the same test suite passed for that release.
 
 - Theme normalization: pass
 - Switcher navigation and removal policy: pass
 - Preview cache promotion, eviction, and clear: pass
 
-The tests cover luminance and contrast normalization, selection text derivation, recent-list navigation, two-step removal, and the three-entry LRU preview cache.
+The tests cover luminance and contrast normalization, selection text derivation, recent-list navigation, two-step removal, and the three-entry LRU preview cache. The policy sources are unchanged from v1.0.1.
 
 ### Full CI
 
-Run [41165558579](https://github.com/NadimHider/nocturne/actions/runs/41165558579) completed successfully.
+Run [41175554920](https://github.com/NadimHider/nocturne/actions/runs/41175554920) completed successfully.
 
-- 84 core build jobs passed.
+- All core build jobs passed.
 - The aggregate build job passed.
 - The package, upload, and attestation stages passed.
 
 ### H700 build
 
-Run [41165558582](https://github.com/NadimHider/nocturne/actions/runs/41165558582) completed successfully.
+Run [41175554962](https://github.com/NadimHider/nocturne/actions/runs/41175554962) completed successfully.
 
 - The H700 cross-build passed.
 - The update archive was packaged and uploaded.
-- The archive was downloaded and installed for validation.
+- The boot payload was packaged and uploaded as the `h700-boot` artifact.
+- The archives were downloaded and installed for validation.
 
 ## Binary verification
 
 The installed binaries are aarch64 ELF files. Their `DT_NEEDED` dependency lists match the previous build.
 
 ```text
-nextui.elf       CAD17B81D62BEDC2E37DF00C5BDF03D849C70F8008AB4B61BD9838841C4ADF82
-minarch.elf      5B87BE571189DBF645E211D9CBB28DFE5AA597992772B463E9E46992B4EA774F
+nextui.elf       37A14A6134427FEE5069C34950DBE9FC08540342528B9F29C6128F14AB861D70
+minarch.elf      D77B5742F8818AF7E27E4377166182D60735F3072453DB07F879457991A0E723
 keymon.elf       2FDD6E090DD8D4C0A624F7C20F28B83EA2FFAADCBC87F19226B136C6A217E025
-nextval.elf      A6021FFCEE19D9B1FD0D450CC30D66FE3C4D8A2C96DBD8647A4996F602C0A7F7
+nextval.elf      2A97D480AE25B83F998511DBAD7F52763806DB7D5151511501F43C54B237213C
 syncsettings.elf D3A6C0AA1C3CD338DA5CB5B167CF5758A9253BD7E6E9C333F90C6066A193C673
-settings.elf     92E451285B6191143A67E1B823EE013DD512364E0B0AE0047245CB89C82E4127
-ledcontrol.elf   E85AFE7448A8059D3E3BF62E6DE53463954FDF575C91E62B6B6E9DC1F3C392E0
+settings.elf     69D495AC816C38204B28436CC5E5DF07ED0146A532DDD73564047EB7C7DCF6CD
+ledcontrol.elf   DE1548F3D209DD783F60717F9619F4D146257091B3EBBF4A375C98B4C67F5BAE
 ```
 
 | Check | Result |
@@ -73,45 +76,71 @@ ledcontrol.elf   E85AFE7448A8059D3E3BF62E6DE53463954FDF575C91E62B6B6E9DC1F3C392E
 | MinArch hash matches artifact | Pass |
 | Settings hash matches artifact | Pass |
 
+## Boot payload verification
+
+The boot shim is a shell script followed by a gzip-compressed tar archive. The embedded payload contains `fbsplash`, `unzip`, and `shim-common.sh`.
+
+```text
+dmenu.bin        CFD545ADF2761D0022A164ED49AECD57908CF607706B74ECB3DEC0D9CDDBF7D1
+```
+
+| Check | Result |
+| --- | --- |
+| Script line endings | LF only |
+| Payload archive | Valid gzip and tar |
+| `fbsplash` machine | AArch64 (183) |
+| `fbsplash` GLIBC requirement | 2.17 |
+| Splash strings | `NOCTURNE` and `STARTING NOCTURNE` present |
+| Legacy splash strings | No `NEXTUI` splash strings |
+| Validated payload match | Content-identical to the payload tested on the device |
+
+The payload renders Departure Mono glyphs sampled on the font's native 11 px grid. It does not link SDL_ttf, so the splash works before the card is mounted.
+
 ## Card verification
 
 | Check | Result |
 | --- | --- |
 | `.system`, `.userdata`, `Tools`, `Emus`, `Bios`, `Saves`, `Shaders`, `Roms` at card root | Pass |
 | `.system/h700/bin` contains the release binaries | Pass |
+| `.system/h700/dat/dmenu.bin` contains the release boot payload | Pass |
 | `Tools/h700/Settings.pak` contains the release Settings binary | Pass |
 | `Tools/h700/LedControl.pak` contains the release LED Control binary | Pass |
 | `Tools/h700/CleanRomset.pak` contains the release cleanup script | Pass |
 | `defaultView=0` in `minuisettings.txt` | Pass |
-| Built-in palettes present, including the six new palettes | Pass |
-| Boot-critical files present | Pass |
+| Built-in palettes present | Pass |
+| Removed Next and OG font files absent | Pass |
+| Pak Store paks and Quick Menu entry absent | Pass |
 | Zero-byte files under `.system` | None |
 | `chkdsk` file system scan | No problems |
 | Dirty bit | Not set |
 | Volume cache | Flushed before eject |
 
-The six new palettes were checked against their source files. Their content matches; only line endings differ between the repository checkout and the card.
-
 ## Device checklist
 
 | Check | Result |
 | --- | --- |
+| Boot splash reads `NOCTURNE` in Departure Mono with the teal rule and `STARTING NOCTURNE` | Pass |
 | Boots to the game-system list by default | Pass |
 | Pills render with clean rounded corners and centered text | Pass |
 | List typography is reduced and remains readable | Pass |
 | Selection glide is smooth | Pass |
 | Screen transitions are smooth | Pass |
-| Six new palettes appear in Settings | Pass |
+| Font menu lists only Departure Mono, Silkscreen, Home Video, and Fake Receipt | Pass |
+| Font choice persists across frontend restarts | Pass |
+| Quick Menu has no Pak Store entry | Pass |
+| SFC game art appears for Soul Blazer | Pass |
+| PS game art appears for MediEvil II | Pass |
+| Arcade game art appears for 1942 | Pass |
 | Game launches and exits to the frontend | Pass |
 
-The device checks were performed on the RG40XX H with the installed `12927c60` build.
+The device checks were performed on the RG40XX H. The boot payload is copied from `.system/h700/dat/dmenu.bin` to the boot partition by `h700-init.sh` on the first boot after installation, so the new splash appears on the following boot.
 
 ## Reproducing the build
 
 ```sh
 git clone https://github.com/NadimHider/nocturne.git
 cd nocturne
-git checkout 12927c60
+git checkout c2a09365
 make setup
 make build PLATFORM=h700 COMPILE_CORES=false
 ```
@@ -125,15 +154,16 @@ The H700 workflow uses the same source and toolchain image. The build is not rep
 - Emulator performance and compatibility depend on the selected libretro core, ROM set, and BIOS files.
 - Wi-Fi and Bluetooth behavior depends on the Base OS drivers and the local network or accessory.
 - HDMI behavior depends on the display and cable. Hotplug handling restarts the frontend by design.
+- Game art is card data. The frontend reads `<rom-name>.png` from each system's `.media` folder. The release does not include art.
 
 ## Release artifact
 
-`Nocturne-v1.0.1-H700-components.zip` contains the frontend, MinArch, key monitor, supporting utilities, ten palettes, Settings, LED Control, CleanRomset, and `.system/version.txt`.
+`Nocturne-v1.0.2-H700-components.zip` contains the frontend, MinArch, key monitor, supporting utilities, the boot payload, ten palettes, Settings, LED Control, CleanRomset, and `.system/version.txt`.
 
 SHA256:
 
 ```text
-8EFD1C7D4FFA636DD0C6AE0F1B7FC8E422D4CFA43FC6108A844D9F67CB4F55B1
+1A53EA3312D97FB6D390519BDA863C2B7FFB2DE4FEAD5BB123FA132C3A9F3AB8
 ```
 
 Verify the digest before extracting the archive to a card.

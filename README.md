@@ -33,6 +33,7 @@ This repository is the official source for Nocturne builds, documentation, and r
 | Emulation | MinArch with libretro cores |
 | Palettes | 10 built-in dark palettes, custom palette support |
 | Typography | Departure Mono, four size steps, normal and bold styles |
+| Boot | Departure Mono wordmark drawn by the H700 boot shim |
 | Motion | 60 fps selection glide, snappy and comfortable transitions |
 | Storage | Base OS card layout with root-level `.system`, `Tools`, and `Roms` |
 | License | PolyForm Noncommercial 1.0.0 |
@@ -45,6 +46,8 @@ This repository is the official source for Nocturne builds, documentation, and r
 - Ten built-in dark palettes: Nocturne, Ember, Iris, Tidal, Obsidian Gold, Midnight Sapphire, Aurora Pine, Crimson Noir, Graphite Copper, and Velvet Indigo.
 - Custom palette files in `.system/res/palettes` are normalized for dark surfaces and readable text contrast.
 - Departure Mono is the default font. Settings provides four size steps and a normal or bold style.
+- The boot shim draws the Nocturne wordmark in Departure Mono on every boot, before the card is mounted.
+- The font menu lists only the fonts installed in `.system/res`. The stock build ships Departure Mono, Silkscreen, Home Video, and Fake Receipt.
 - Selection pills are drawn from the native rounded asset at the requested height, with centered text and no cropped end caps.
 - Selection glide and screen transitions are driven by elapsed time at 60 fps, with snappy and comfortable modes.
 - Recent games, collections, game art, folder names, the clock, battery percentage, and thumbnail radius are configurable.
@@ -147,17 +150,17 @@ SD card root
 On Linux or macOS with the GitHub CLI:
 
 ```sh
-gh release download v1.0.1 --repo NadimHider/nocturne \
-  --pattern 'Nocturne-v1.0.1-H700-components.zip'
-unzip -o Nocturne-v1.0.1-H700-components.zip -d /path/to/card
+gh release download v1.0.2 --repo NadimHider/nocturne \
+  --pattern 'Nocturne-v1.0.2-H700-components.zip'
+unzip -o Nocturne-v1.0.2-H700-components.zip -d /path/to/card
 sync
 ```
 
 On Windows with PowerShell, replace `H:` with the card's drive letter:
 
 ```powershell
-gh release download v1.0.1 --repo NadimHider/nocturne --pattern 'Nocturne-v1.0.1-H700-components.zip'
-Expand-Archive .\Nocturne-v1.0.1-H700-components.zip -DestinationPath H:\ -Force
+gh release download v1.0.2 --repo NadimHider/nocturne --pattern 'Nocturne-v1.0.2-H700-components.zip'
+Expand-Archive .\Nocturne-v1.0.2-H700-components.zip -DestinationPath H:\ -Force
 ```
 
 The archive contains:
@@ -165,6 +168,7 @@ The archive contains:
 | Path | Contents |
 | --- | --- |
 | `.system/h700/bin/` | `nextui.elf`, `minarch.elf`, `keymon.elf`, `nextval.elf`, and `syncsettings.elf` |
+| `.system/h700/dat/` | `dmenu.bin`, the boot shim and Departure Mono boot splash payload |
 | `.system/res/palettes/` | Ten built-in palette files |
 | `Tools/h700/Settings.pak/` | Settings application |
 | `Tools/h700/LedControl.pak/` | LED control application |
@@ -236,6 +240,12 @@ Nocturne stores frontend settings in `.userdata/shared/minuisettings.txt`. The S
 | `batteryperc` | `0` hidden, `1` shown | `0` |
 | `wifi` | `0` off, `1` on | `0` |
 | `bluetooth` | `0` off, `1` on | `0` |
+
+### Game art
+
+The frontend reads one image per game from `<system>/.media/<rom-name>.png`, where `<rom-name>` is the ROM filename without its extension. For example, `Roms/Super Nintendo Entertainment System (SFC)/Soul Blazer (U) [!].sfc` uses `Roms/Super Nintendo Entertainment System (SFC)/.media/Soul Blazer (U) [!].png`.
+
+Game art is card data and is not included in the release archive. The frontend does not match JPG files or `-image` suffixes. Convert or rename art to the exact PNG path above.
 
 <details>
 <summary>Built-in palettes</summary>
@@ -351,9 +361,9 @@ The component boundaries, runtime flow, and build pipeline are described in [doc
 
 ## Validation
 
-Nocturne v1.0.1 was built from commit `12927c60`. The H700 workflow passed in [run 41165558582](https://github.com/NadimHider/nocturne/actions/runs/41165558582), and the full CI matrix passed in [run 41165558579](https://github.com/NadimHider/nocturne/actions/runs/41165558579). The release binaries are aarch64 and retain the same shared-library dependencies as the previous build.
+Nocturne v1.0.2 was built from commit `c2a09365`. The H700 workflow passed in [run 41175554962](https://github.com/NadimHider/nocturne/actions/runs/41175554962), and the full CI matrix passed in [run 41175554920](https://github.com/NadimHider/nocturne/actions/runs/41175554920). The release binaries are aarch64 and retain the same shared-library dependencies as the previous build.
 
-Hardware checks on the RG40XX H cover the default game-system list, pill geometry, typography, selection and transition motion, the built-in palettes, and game launch. The complete checklist, binary hashes, and archive digest are in [docs/VALIDATION.md](docs/VALIDATION.md).
+Hardware checks on the RG40XX H cover the Departure Mono boot splash, the default game-system list, pill geometry, typography, selection and transition motion, the four installed fonts, font persistence, the absence of Pak Store, game art lookup, and game launch. The complete checklist, binary hashes, and archive digest are in [docs/VALIDATION.md](docs/VALIDATION.md).
 
 ## Troubleshooting
 

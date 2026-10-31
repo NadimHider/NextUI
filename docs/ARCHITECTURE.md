@@ -30,6 +30,7 @@ flowchart LR
 
 | Component | Responsibility |
 | --- | --- |
+| `dmenu.bin` | Boot shim, payload extraction, card mount, install and update handoff, and the Departure Mono boot splash |
 | `keymon.elf` | Handles H700 volume keys and Menu + volume brightness adjustment |
 | `nextui.elf` | Game-system list, navigation, palettes, typography, motion, Quick Menu, and Game Switcher |
 | `minarch.elf` | Loads libretro cores, manages save states, shaders, cheats, remaps, and in-game shortcuts |
@@ -62,7 +63,7 @@ The shared layer under `workspace/all/common` contains the palette engine, font 
 
 ## Boot and runtime flow
 
-1. Base OS mounts the SD card and starts the H700 launcher.
+1. Base OS starts the H700 boot shim from the boot partition. The shim extracts its payload, draws the Nocturne wordmark in Departure Mono, mounts the card, and starts the launcher.
 2. The launcher starts the H700 helper processes, including `keymon.elf`, `batmon.elf`, and `audiomon.elf`, then starts `nextui.elf` from `.system/h700/bin`.
 3. The frontend loads `.userdata/shared/minuisettings.txt`, applies the saved palette and font, and opens the configured startup view.
 4. The frontend scans the card for game-system folders and reads the selected directory.
@@ -99,7 +100,7 @@ Screen transitions use elapsed wall-clock time and 60 fps frame pacing. Snappy t
 
 | Workflow | Runner | Output |
 | --- | --- | --- |
-| `h700.yaml` | `ubuntu-24.04-arm` | Cross-builds the H700 components and packages `h700-update` |
+| `h700.yaml` | `ubuntu-24.04-arm` | Cross-builds the H700 components, packages `h700-update`, and uploads the `h700-boot` payload |
 | `ci.yaml` | `ubuntu-24.04-arm` | Builds the full core matrix and aggregate release package |
 | `dev.yaml` | Hosted runner | Desktop and development builds |
 
@@ -146,9 +147,10 @@ Changes that would break these interfaces are out of scope for a point release.
 1. Build the H700 components from the target commit through `h700.yaml`.
 2. Run the full CI matrix through `ci.yaml`.
 3. Verify the installed binaries are aarch64 and retain their shared-library dependencies.
-4. Check the card layout, palettes, settings, and boot-critical files.
-5. Flush the card and run a file system check before ejecting.
-6. Boot the device and complete the validation checklist.
-7. Publish the release asset with the build commit, workflow runs, and SHA256.
+4. Verify the boot payload is LF-only, extracts cleanly, and contains the expected splash strings.
+5. Check the card layout, palettes, settings, fonts, and boot-critical files.
+6. Flush the card and run a file system check before ejecting.
+7. Boot the device and complete the validation checklist.
+8. Publish the release asset with the build commit, workflow runs, and SHA256.
 
 The current validation record is in [VALIDATION.md](VALIDATION.md).

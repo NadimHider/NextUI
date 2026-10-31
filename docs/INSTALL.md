@@ -55,7 +55,7 @@ Placing `.system` or `Tools` inside `Roms` prevents the frontend from finding it
 
 ## Update an existing card
 
-1. Download `Nocturne-v1.0.1-H700-components.zip` from the [latest release](https://github.com/NadimHider/nocturne/releases/latest).
+1. Download `Nocturne-v1.0.2-H700-components.zip` from the [latest release](https://github.com/NadimHider/nocturne/releases/latest).
 2. Extract the archive to the root of the SD card. Replace existing files when prompted.
 3. Flush the card and eject it safely.
 4. Insert the card into the RG40XX H and power on.
@@ -66,9 +66,9 @@ Placing `.system` or `Tools` inside `Roms` prevents the frontend from finding it
 With the GitHub CLI:
 
 ```sh
-gh release download v1.0.1 --repo NadimHider/nocturne \
-  --pattern 'Nocturne-v1.0.1-H700-components.zip'
-unzip -o Nocturne-v1.0.1-H700-components.zip -d /path/to/card
+gh release download v1.0.2 --repo NadimHider/nocturne \
+  --pattern 'Nocturne-v1.0.2-H700-components.zip'
+unzip -o Nocturne-v1.0.2-H700-components.zip -d /path/to/card
 sync
 ```
 
@@ -79,8 +79,8 @@ Without the GitHub CLI, download the archive from the release page and extract i
 With the GitHub CLI, replace `H:` with the card's drive letter:
 
 ```powershell
-gh release download v1.0.1 --repo NadimHider/nocturne --pattern 'Nocturne-v1.0.1-H700-components.zip'
-Expand-Archive .\Nocturne-v1.0.1-H700-components.zip -DestinationPath H:\ -Force
+gh release download v1.0.2 --repo NadimHider/nocturne --pattern 'Nocturne-v1.0.2-H700-components.zip'
+Expand-Archive .\Nocturne-v1.0.2-H700-components.zip -DestinationPath H:\ -Force
 ```
 
 Without the GitHub CLI, download the archive, open it, and copy its contents to the card root.
@@ -94,6 +94,7 @@ Without the GitHub CLI, download the archive, open it, and copy its contents to 
 | `.system/h700/bin/keymon.elf` | H700 key monitor |
 | `.system/h700/bin/nextval.elf` | Value editor used by the frontend |
 | `.system/h700/bin/syncsettings.elf` | Settings synchronization utility |
+| `.system/h700/dat/dmenu.bin` | Boot shim and Departure Mono boot splash payload |
 | `.system/res/palettes/` | Ten built-in palette files |
 | `Tools/h700/Settings.pak/settings.elf` | Settings application |
 | `Tools/h700/LedControl.pak/ledcontrol.elf` | LED control application |
@@ -120,15 +121,21 @@ The upstream NextUI documentation covers Base OS preparation, supported cores, a
 
 After the first boot with Nocturne:
 
+- The boot splash reads `NOCTURNE` in Departure Mono with a teal rule and `STARTING NOCTURNE` underneath.
 - The frontend opens on the game-system list, not Quick Menu or Settings.
 - The list font is smaller than the stock NextUI size and remains readable.
 - Selection pills have clean rounded corners and centered text.
 - Moving the selection is smooth, with no visible stutter.
 - Menu opens Settings. Start opens Quick Menu. Menu + R1 opens Game Switcher.
-- Settings shows the built-in palettes, including Obsidian Gold, Midnight Sapphire, Aurora Pine, Crimson Noir, Graphite Copper, and Velvet Indigo.
+- Settings, Appearance, Font lists only Departure Mono, Silkscreen, Home Video, and Fake Receipt.
+- Changing the font and restarting the frontend preserves the choice.
+- Quick Menu has no Pak Store entry.
+- Game art appears for games that have a matching `<rom-name>.png` in the system's `.media` folder.
 - A game launches, runs, and exits back to the frontend.
 - Save states and resume work for the tested core.
 - Wi-Fi, Bluetooth, brightness, LED control, sleep, and battery reporting behave as expected.
+
+The boot payload is copied from `.system/h700/dat/dmenu.bin` to the boot partition by `h700-init.sh` on the first boot after installation. If the splash still shows the previous wordmark, reboot once more.
 
 The release validation record is in [VALIDATION.md](VALIDATION.md).
 
@@ -137,7 +144,7 @@ The release validation record is in [VALIDATION.md](VALIDATION.md).
 If the device does not boot or the frontend does not start:
 
 1. Power off the device and move the card to the computer.
-2. Restore the previous `.system/h700/bin/` and `.system/res/palettes/` directories and the `Tools/h700/Settings.pak`, `Tools/h700/LedControl.pak`, and `Tools/h700/CleanRomset.pak` directories from your backup.
+2. Restore the previous `.system/h700/bin/`, `.system/h700/dat/`, and `.system/res/palettes/` directories and the `Tools/h700/Settings.pak`, `Tools/h700/LedControl.pak`, and `Tools/h700/CleanRomset.pak` directories from your backup.
 3. If you do not have a backup, install the previous Nocturne release over the card, or reinstall NextUI and then apply the older Nocturne bundle.
 4. Flush the card, eject it safely, and boot the device.
 
