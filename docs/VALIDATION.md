@@ -1,193 +1,139 @@
-# Nocturne validation and audit notes
+# Validation
 
-Date: 2026-10-31
-Branch: `personal/nocturne`
-Base fork HEAD: `440325896a59703e772f59fa7cf3d625124987a3`
-Target: Anbernic RG40XX H (`h700`), Base OS + NextUI frontend
+This page records the build, binary, card, and device checks for Nocturne v1.0.1.
 
-## 1. Pre-change audit summary
+## Build provenance
 
-The personal fork was eight commits ahead of the upstream base used for this
-work. The original fork work included:
+| Item | Value |
+| --- | --- |
+| Release | Nocturne v1.0.1 |
+| Binary commit | `12927c60` |
+| H700 workflow | [41165558582](https://github.com/NadimHider/nocturne/actions/runs/41165558582), success |
+| Full CI | [41165558579](https://github.com/NadimHider/nocturne/actions/runs/41165558579), success |
+| Device | Anbernic RG40XX H |
+| Card | exFAT, label `Roms` |
+| Validation date | 2026-10-31 |
 
-- font size / LED fixes and retro font additions
-- H700 packaging work
-- curated fonts with Departure Mono as default
-- release-asset ignore rules
-- font hiding / MAME / shader cleanup
-- START/MENU Settings behavior and in-game shortcuts
-- CI trigger changes
-- Menu-to-Settings fallback and per-button timing
+The release tag includes the documentation update that follows the binary commit. The binaries in the release archive were built from `12927c60`.
 
-Main issues found before editing:
+## Automated checks
 
-- Select duplicated the game-switcher role and could be accidental.
-- Several in-game shortcut defaults were aggressive for normal play.
-- Light/white hardcoded colors remained across settings, overlays, clock,
-  game time, LED control, and MiniArch surfaces.
-- The switcher decoded previews repeatedly and had weak empty/unavailable
-  states.
-- H700 keymon consumed Select for color temperature and used a timing path
-  that could mishandle idle/resume gaps.
-- Desktop harness geometry did not match the RG40XX H panel by default.
-- README and on-card readmes still described upstream control defaults.
-
-## 2. Implemented scope
-
-### Controls
-
-- Menu tap opens Settings, with Quick Menu fallback.
-- Start opens Quick Menu.
-- Menu+R1 opens the Game Switcher from list, Quick Menu, and Settings.
-- Select is unassigned at the frontend level on H700/desktop.
-- H700 keymon no longer consumes Select; physical Menu+volume adjusts
-  brightness. Color temperature remains in Settings > Display.
-- MiniArch legacy shortcut defaults are migrated once, only when they exactly
-  match the old defaults. The marker `nocturne_shortcuts = 1` is written with
-  the active MinArch config. Custom nonlegacy bindings are preserved.
-- Hardcoded Menu+Select exit was removed.
-
-### Theme and motion
-
-- Seven semantic color slots are preserved for compatibility:
-  selection, header/footer surface, raised surface, primary text, selection
-  text, secondary text, backdrop.
-- Selection text is derived from the selection fill.
-- Imported colors are normalized: dark opaque surfaces and lifted text
-  contrast. Original palette files are not rewritten.
-- Built-in palettes are dark-only: Nocturne, Ember, Iris, Tidal.
-- Settings, keyboard prompt, Wi-Fi/Bluetooth, clock, game time, LED control,
-  MiniArch, and frontend rows use semantic colors instead of white/black
-  hardcodes where those were user-facing fills/text.
-- Transitions are 100 ms snappy / 160 ms comfortable, with zero-duration
-  guards. Title scrolling follows the animation setting.
-
-### Switcher
-
-- Three-entry main-thread LRU preview cache.
-- Position counter and clearer title/footer hints.
-- Repeat left/right navigation; wrap only when more than one recent exists.
-- Two-step Y removal; B cancels. Removal affects only the recent list.
-- Missing-preview and unavailable-recent fallbacks.
-- Save/resume/persist paths and file formats were not changed.
-
-### Device/build/docs
-
-- Desktop harness defaults to 640x480, scale 2, six rows.
-- `COMPILE_CORES=false` now actually skips cores.
-- H700 keymon makefile no longer depends on the container mount path.
-- H700 poweroff/reboot links libm after theme math became reachable.
-- Personal package omits the upstream auto-updater pak.
-- H700 CI runs host policy tests and builds a component artifact.
-- Inherited upstream CI/release jobs are guarded against accidental personal
-  fork execution; release jobs are upstream-only.
-- README, NOTICE, CONTRIBUTING, and on-card readmes were updated for Nocturne.
-
-## 3. Host policy tests
+### Host policy tests
 
 Command:
 
-```bash
+```sh
 make test-nocturne
 ```
 
-Result: PASS
+Result: pass.
 
-- `theme: ok`
-- `switcher: ok`
-- `preview cache: ok`
+- Theme normalization: pass
+- Switcher navigation and removal policy: pass
+- Preview cache promotion, eviction, and clear: pass
 
-The tests cover luminance/contrast normalization, selection-text derivation,
-navigation/removal policy, and LRU promotion/eviction/clear behavior.
+The tests cover luminance and contrast normalization, selection text derivation, recent-list navigation, two-step removal, and the three-entry LRU preview cache.
 
-## 4. Native desktop build
+### Full CI
 
-Command:
+Run [41165558579](https://github.com/NadimHider/nocturne/actions/runs/41165558579) completed successfully.
 
-```bash
-make build PLATFORM=desktop COMPILE_CORES=false
+- 84 core build jobs passed.
+- The aggregate build job passed.
+- The package, upload, and attestation stages passed.
+
+### H700 build
+
+Run [41165558582](https://github.com/NadimHider/nocturne/actions/runs/41165558582) completed successfully.
+
+- The H700 cross-build passed.
+- The update archive was packaged and uploaded.
+- The archive was downloaded and installed for validation.
+
+## Binary verification
+
+The installed binaries are aarch64 ELF files. Their `DT_NEEDED` dependency lists match the previous build.
+
+```text
+nextui.elf       CAD17B81D62BEDC2E37DF00C5BDF03D849C70F8008AB4B61BD9838841C4ADF82
+minarch.elf      5B87BE571189DBF645E211D9CBB28DFE5AA597992772B463E9E46992B4EA774F
+keymon.elf       2FDD6E090DD8D4C0A624F7C20F28B83EA2FFAADCBC87F19226B136C6A217E025
+nextval.elf      A6021FFCEE19D9B1FD0D450CC30D66FE3C4D8A2C96DBD8647A4996F602C0A7F7
+syncsettings.elf D3A6C0AA1C3CD338DA5CB5B167CF5758A9253BD7E6E9C333F90C6066A193C673
+settings.elf     92E451285B6191143A67E1B823EE013DD512364E0B0AE0047245CB89C82E4127
+ledcontrol.elf   E85AFE7448A8059D3E3BF62E6DE53463954FDF575C91E62B6B6E9DC1F3C392E0
 ```
 
-Result: PASS
+| Check | Result |
+| --- | --- |
+| ELF class | 64-bit |
+| Machine | AArch64 (183) |
+| Dependency changes | None |
+| Frontend hash matches artifact | Pass |
+| MinArch hash matches artifact | Pass |
+| Settings hash matches artifact | Pass |
 
-Built native desktop components include NextUI, MiniArch, clock, minput,
-nextval, and Settings. The desktop harness uses `/var/tmp/nextui/sdcard` and
-stub battery/network state. Remaining warnings are inherited upstream
-warnings (for example `pclose` attribute and legacy string/format warnings).
+## Card verification
 
-## 5. H700 cross-builds
+| Check | Result |
+| --- | --- |
+| `.system`, `.userdata`, `Tools`, `Emus`, `Bios`, `Saves`, `Shaders`, `Roms` at card root | Pass |
+| `.system/h700/bin` contains the release binaries | Pass |
+| `Tools/h700/Settings.pak` contains the release Settings binary | Pass |
+| `Tools/h700/LedControl.pak` contains the release LED Control binary | Pass |
+| `Tools/h700/CleanRomset.pak` contains the release cleanup script | Pass |
+| `defaultView=0` in `minuisettings.txt` | Pass |
+| Built-in palettes present, including the six new palettes | Pass |
+| Boot-critical files present | Pass |
+| Zero-byte files under `.system` | None |
+| `chkdsk` file system scan | No problems |
+| Dirty bit | Not set |
+| Volume cache | Flushed before eject |
 
-Docker/Podman were unavailable in the workspace. The official
-`ghcr.io/loveretro/h700-toolchain:latest` image was downloaded with skopeo,
-its `/opt` toolchain layers were extracted, and the cross compiler was used
-directly with the image's sysroot and `/opt/nextui` support libraries.
+The six new palettes were checked against their source files. Their content matches; only line endings differ between the repository checkout and the card.
 
-Result: PASS for the changed/supporting H700 components:
+## Device checklist
 
-- `libmsettings`
-- `nextui`
-- `minarch`
-- `settings`
-- `clock`
-- `gametime` / `libgametimedb`
-- `ledcontrol`
-- `keymon`
-- `battery`, `libbatmondb`, `batmon`
-- `gametimectl`, `minput`, `syncsettings`, `nextval`
-- `audiomon`, `show2`, `bootlogo`
-- `poweroff_next` / `reboot_next`
+| Check | Result |
+| --- | --- |
+| Boots to the game-system list by default | Pass |
+| Pills render with clean rounded corners and centered text | Pass |
+| List typography is reduced and remains readable | Pass |
+| Selection glide is smooth | Pass |
+| Screen transitions are smooth | Pass |
+| Six new palettes appear in Settings | Pass |
+| Game launches and exits to the frontend | Pass |
 
-`keymon.c` also passed a strict syntax check with upstream header
-unused-parameter warnings suppressed.
+The device checks were performed on the RG40XX H with the installed `12927c60` build.
 
-Not run: full H700 package/core rebuild, `make h700`, and device flashing.
-The H700 CI artifact is a component bundle, not a complete installer.
+## Reproducing the build
 
-## 6. Screenshots
+```sh
+git clone https://github.com/NadimHider/nocturne.git
+cd nocturne
+git checkout 12927c60
+make setup
+make build PLATFORM=h700 COMPILE_CORES=false
+```
 
-Captured from the native desktop harness under Xvfb at 640x480. They are
-**desktop renders**, not RG40XX H device captures. The library entries are
-placeholders.
+The H700 workflow uses the same source and toolchain image. The build is not reproducible byte for byte for `minarch.elf` and `settings.elf`, so release artifacts should be taken from the workflow run that matches the release commit.
 
-Files:
+## Known limitations
 
-- `docs/screenshots/desktop-main.png`
-- `docs/screenshots/desktop-switcher.png`
-- `docs/screenshots/desktop-switcher-2.png`
-- `docs/screenshots/desktop-switcher-remove.png`
-- `docs/screenshots/desktop-quick.png`
-- `docs/screenshots/desktop-settings.png`
-- `docs/screenshots/desktop-settings-appearance.png`
+- Nocturne is a component bundle. It does not install Base OS, a bootloader, a kernel, emulator cores, BIOS files, or ROMs.
+- The release targets the H700 platform and the RG40XX H. Other H700 devices may work but are not part of this validation.
+- Emulator performance and compatibility depend on the selected libretro core, ROM set, and BIOS files.
+- Wi-Fi and Bluetooth behavior depends on the Base OS drivers and the local network or accessory.
+- HDMI behavior depends on the display and cable. Hotplug handling restarts the frontend by design.
 
-## 7. Physical RG40XX H checklist
+## Release artifact
 
-Before daily use, verify on the actual device:
+`Nocturne-v1.0.1-H700-components.zip` contains the frontend, MinArch, key monitor, supporting utilities, ten palettes, Settings, LED Control, CleanRomset, and `.system/version.txt`.
 
-1. Boot Base OS + NextUI with the existing `MinUI.zip` / `.system/h700` layout.
-2. Menu tap opens Settings; Start opens Quick Menu; Select does nothing in the
-   frontend.
-3. Menu+R1 opens the switcher from list, Quick Menu, and Settings; returning
-   does not also trigger a Menu tap.
-4. Volume keys adjust volume; physical Menu+volume adjusts brightness; no
-   Select color-temperature chord remains.
-5. Settings > Display color temperature still works.
-6. Game Switcher previews load, cycling is responsive, Y removal requires two
-   presses, B cancels, and ROM/save files are untouched.
-7. Resume, quicksave, auto-resume, and `game_switcher.txt` persistence survive
-   reboot and sleep/wake.
-8. MiniArch menu, remaps, save/load state, reset, fast-forward, rewind, and
-   achievement overlays still work; legacy shortcut migration does not
-   overwrite custom bindings.
-9. Dark palettes remain readable in low light and daylight; text contrast,
-   button glyphs, keyboard, Wi-Fi/Bluetooth, clock, game time, and LED control
-   have no white flashes or invisible text.
-10. Animations feel immediate; disabling animations removes motion and
-    scrolling without breaking rendering.
-11. HDMI output, sleep/wake, audio, Wi-Fi/Bluetooth, battery reporting, LED
-    banks, rumble, and thermal behavior remain stable.
-12. Capture real device screenshots for the README.
+SHA256:
 
-## 8. Publication status
+```text
+8EFD1C7D4FFA636DD0C6AE0F1B7FC8E422D4CFA43FC6108A844D9F67CB4F55B1
+```
 
-No commit push, release, deployment, or flashing was performed. Changes are
-local to the workspace branch `personal/nocturne`.
+Verify the digest before extracting the archive to a card.

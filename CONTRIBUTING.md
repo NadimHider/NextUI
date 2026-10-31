@@ -1,12 +1,12 @@
 # Contributing to Nocturne
 
-Thanks for your interest in this personal NextUI fork. Nocturne is primarily tuned for the Anbernic RG40XX H (H700). Keep changes focused, preserve upstream notices and compatibility identifiers, and test on hardware before proposing broad frontend changes.
+Thanks for your interest in Nocturne, an independent fork of NextUI. Nocturne is primarily tuned for the Anbernic RG40XX H (H700). Keep changes focused, preserve upstream notices and compatibility identifiers, and test on hardware before proposing broad frontend changes.
 
 ## Ways to Contribute
 
-- **Bug reports** — open an issue describing the problem, steps to reproduce, and your device/firmware version
-- **Feature requests** — open an issue before writing any code, so we can discuss whether it's a good fit
-- **Pull requests** — for bug fixes and agreed-upon features; please link the related issue in your PR description
+- **Bug reports**: open an issue describing the problem, steps to reproduce, and your device/firmware version
+- **Feature requests**: open an issue before writing any code, so we can discuss whether it's a good fit
+- **Pull requests**: for bug fixes and agreed-upon features; please link the related issue in your PR description
 
 ## Opening Issues
 
@@ -20,7 +20,7 @@ Before opening an issue, search existing ones to avoid duplicates. When reportin
 ## Submitting Pull Requests
 
 1. Fork the repository and create a branch from `main`
-2. Keep changes focused — one fix or feature per PR
+2. Keep changes focused: one fix or feature per PR
 3. Test your changes on hardware before submitting
 4. Write a clear PR description explaining what and why, not just what
 
@@ -40,5 +40,5 @@ to the above and confirming that you have the right to do so.
 
 ## Upstream
 
-Nocturne is a personal fork of [NextUI](https://github.com/LoveRetro/NextUI), which is a fork of [MinUI](https://github.com/shauninman/MinUI) by Shaun Inman.
+Nocturne is an independent fork of [NextUI](https://github.com/LoveRetro/NextUI), which is a fork of [MinUI](https://github.com/shauninman/MinUI) by Shaun Inman.
 Contributions should be mindful of that heritage. See [NOTICE](NOTICE) for details.

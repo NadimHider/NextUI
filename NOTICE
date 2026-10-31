@@ -6,7 +6,7 @@ Source: https://github.com/shauninman/MinUI
 MinUI was made available for forking and personal use per the following
 statement in its original README:
 
-  "Developers — I am not soliciting source contributions. Please feel
+  "Developers - I am not soliciting source contributions. Please feel
   free to fork or learn from any of my repos but I don't have time to
   manage a community or be managed by one."
 
@@ -35,14 +35,16 @@ included under the new license were either consented to by their
 authors, or determined to fall below the threshold of copyrightable
 originality.
 
-Personal Fork: Nocturne
+Nocturne
 
-This repository also contains a personal fork maintained by Nadim Hider
-under the name "Nocturne". Nocturne is a dark, handheld-first frontend
-variant focused on the Anbernic RG40XX H (H700) running Base OS with NextUI.
-It is not an official NextUI release and is not affiliated with or endorsed
-by the NextUI team or the original MinUI author.
+Nocturne is an independent fork of NextUI maintained by Nadim Hider. It is
+a dark, handheld-first frontend distribution focused on the Anbernic RG40XX H
+(H700) running Base OS with NextUI. This repository is the official source for
+Nocturne builds, documentation, and release artifacts.
+
+Nocturne is not an official NextUI release and is not affiliated with or
+endorsed by the NextUI team or the original MinUI author.
 
 The Nocturne changes preserve upstream compatibility identifiers, notices,
 and the PolyForm Noncommercial 1.0.0 license. See README.md, CONTRIBUTING.md,
-and docs/VALIDATION.md for the fork's scope, build status, and limitations.
+and docs/VALIDATION.md for scope, build status, and limitations.
