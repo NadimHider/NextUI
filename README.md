@@ -45,9 +45,11 @@ Shared UI, theme, and configuration code is in `workspace/all/common`; platform 
 
 The H700 release archive updates an existing Base OS and NextUI card. It is a component bundle, not a bootable image or a complete installer. Back up ROMs, saves, `.userdata`, and custom paks before updating. Hardware validation is required.
 
-On a Linux host with GitHub CLI and `unzip` installed:
+On Ubuntu or Debian, install the tools and update the card:
 
 ```sh
+sudo apt-get update
+sudo apt-get install -y gh unzip
 gh release download v1.0.0 --repo NadimHider/nocturne --pattern 'Nocturne-v1.0.0-H700-components.zip'
 read -r -p 'Mounted SD card directory: ' SDCARD
 test -d "$SDCARD/.system/h700" && test -d "$SDCARD/Tools/h700" || { echo 'NextUI installation not found'; exit 1; }
@@ -60,16 +62,19 @@ Eject the card, insert it into the RG40XX H, and power on. Confirm the frontend,
 <details>
 <summary>Build H700 components from source</summary>
 
-Install Git, GNU Make, and Docker or Podman on a Linux host, then run:
+On Ubuntu, install Git, GNU Make, and Docker, then build:
 
 ```sh
+sudo apt-get update
+sudo apt-get install -y git make docker.io
+sudo systemctl enable --now docker
 git clone https://github.com/NadimHider/nocturne.git
 cd nocturne
 make setup
 make build PLATFORM=h700 COMPILE_CORES=false
 ```
 
-The build uses `ghcr.io/loveretro/h700-toolchain:latest`. Outputs are written under `workspace/*/build/h700` and `workspace/h700/keymon`; this command does not create the release archive.
+Docker must be usable by the current user. The build uses `ghcr.io/loveretro/h700-toolchain:latest`. Outputs are written under `workspace/*/build/h700` and `workspace/h700/keymon`; this command does not create the release archive.
 
 </details>
 
